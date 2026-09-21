@@ -17,90 +17,89 @@ export function ConflictResolver() {
   const { place, overflowAmount, newTotal } = conflict;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-stone-950/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/45 p-0 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) dismissConflict();
+      }}
+    >
       <div
-        className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl border border-stone-200 p-6 flex flex-col gap-4 slide-in-from-bottom duration-300"
+        className="flex w-full max-w-lg flex-col gap-4 overflow-hidden rounded-t-3xl border border-stone-200 bg-[#FFFEFB] p-6 shadow-2xl slide-in-from-bottom duration-300 sm:rounded-3xl"
         role="dialog"
+        aria-modal="true"
+        aria-label="Ajuste de orçamento"
       >
-        {/* Warning Icon & Title */}
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <AlertCircle className="w-5 h-5" />
+          <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+            <AlertCircle className="h-5 w-5" />
           </div>
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">
-              Ajuste de Orçamento
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-800">
+              Ajuste de orçamento
             </span>
-            <h3 className="text-base font-serif font-bold text-stone-900 mt-0.5 leading-snug">
-              Esse local deixa o passeio R${overflowAmount} acima do seu orçamento.
+            <h3 className="mt-0.5 font-serif text-base font-bold leading-snug text-stone-900">
+              Essa escolha ultrapassa seu limite em {"R$" + overflowAmount}.
             </h3>
-            <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-              Você definiu um teto de R${totalBudget}, e com "{place.name}" a previsão iria para R${newTotal}. Como você prefere resolver?
+            <p className="mt-1 text-xs leading-relaxed text-stone-500">
+              Seu teto é {"R$" + totalBudget}. Mantendo “{place.name}”, a previsão fica em {"R$" + newTotal}.
             </p>
           </div>
         </div>
 
-        {/* 3 Clear One-Touch Decisions */}
         <div className="space-y-2.5 pt-2">
-          {/* Option 1: Keep and adjust rest */}
           <button
             onClick={resolveKeepAndAdjust}
-            className="w-full text-left p-3.5 rounded-2xl border border-stone-200 hover:border-stone-900 hover:bg-stone-50 transition-all flex items-start gap-3 group active:scale-[0.99]"
+            className="group flex w-full items-start gap-3 rounded-2xl border border-stone-200 p-3.5 text-left transition-all hover:border-emerald-800/30 hover:bg-emerald-50/30 active:scale-[0.99]"
           >
-            <div className="w-8 h-8 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center flex-shrink-0 group-hover:bg-stone-900 group-hover:text-white transition-colors">
-              <Sliders className="w-4 h-4" />
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-900 transition-colors group-hover:bg-emerald-900 group-hover:text-white">
+              <Sliders className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-stone-900 block group-hover:text-black">
-                Manter e ajustar o restante
+              <span className="block text-xs font-bold text-stone-900">
+                Manter e reduzir o restante
               </span>
-              <span className="text-[11px] text-stone-500 leading-tight">
-                Garantimos "{place.name}" e reorganizamos as outras paradas com opções gratuitas para continuar nos R${totalBudget}.
+              <span className="text-[11px] leading-tight text-stone-500">
+                Preservamos sua prioridade e reduzimos primeiro as paradas flexíveis. Se ainda não couber, a margem continuará visível.
               </span>
             </div>
           </button>
 
-          {/* Option 2: Change place */}
           <button
             onClick={resolveChangePlace}
-            className="w-full text-left p-3.5 rounded-2xl border border-stone-200 hover:border-stone-900 hover:bg-stone-50 transition-all flex items-start gap-3 group active:scale-[0.99]"
+            className="group flex w-full items-start gap-3 rounded-2xl border border-stone-200 p-3.5 text-left transition-all hover:border-stone-300 hover:bg-stone-50 active:scale-[0.99]"
           >
-            <div className="w-8 h-8 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center flex-shrink-0 group-hover:bg-stone-900 group-hover:text-white transition-colors">
-              <ArrowRightLeft className="w-4 h-4" />
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-700">
+              <ArrowRightLeft className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-stone-900 block group-hover:text-black">
-                Escolher outro lugar
-              </span>
-              <span className="text-[11px] text-stone-500 leading-tight">
-                Buscar uma alternativa de valor mais acessível para esta mesma parada.
+              <span className="block text-xs font-bold text-stone-900">Escolher outro lugar</span>
+              <span className="text-[11px] leading-tight text-stone-500">
+                Voltar à busca para selecionar uma alternativa mais acessível.
               </span>
             </div>
           </button>
 
-          {/* Option 3: Increase budget */}
           <button
             onClick={resolveIncreaseBudget}
-            className="w-full text-left p-3.5 rounded-2xl border border-stone-200 hover:border-stone-900 hover:bg-stone-50 transition-all flex items-start gap-3 group active:scale-[0.99]"
+            className="group flex w-full items-start gap-3 rounded-2xl border border-stone-200 p-3.5 text-left transition-all hover:border-stone-300 hover:bg-stone-50 active:scale-[0.99]"
           >
-            <div className="w-8 h-8 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center flex-shrink-0 group-hover:bg-stone-900 group-hover:text-white transition-colors">
-              <DollarSign className="w-4 h-4" />
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-700">
+              <DollarSign className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-stone-900 block group-hover:text-black">
-                Aumentar orçamento para R${newTotal}
+              <span className="block text-xs font-bold text-stone-900">
+                Aumentar orçamento para {"R$" + newTotal}
               </span>
-              <span className="text-[11px] text-stone-500 leading-tight">
-                Atualizar sua meta financeira do dia para absorver todos os lugares sem alterações.
+              <span className="text-[11px] leading-tight text-stone-500">
+                Atualizar o teto do dia para acomodar esta escolha.
               </span>
             </div>
           </button>
         </div>
 
-        {/* Dismiss / Cancel */}
         <button
           onClick={dismissConflict}
-          className="w-full py-2.5 text-xs font-medium text-stone-400 hover:text-stone-700 transition-colors"
+          className="w-full py-2.5 text-xs font-medium text-stone-500 transition-colors hover:text-stone-800"
         >
           Cancelar inclusão
         </button>
