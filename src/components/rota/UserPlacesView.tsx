@@ -3,6 +3,7 @@ import { useTripStore } from "../../lib/tripStore";
 import { AddedPlaceDraft, PriorityLevel } from "../../lib/types";
 import { Plus, Trash2, ArrowRight, Pin, Compass } from "lucide-react";
 import { AddStopModal } from "./AddStopModal";
+import { getUnitPriceLabel } from "../../lib/pricingEngine";
 
 export function UserPlacesView() {
   const {
@@ -62,7 +63,7 @@ export function UserPlacesView() {
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-stone-500">
                         <span>{place.neighborhood}</span>
                         <span>•</span>
-                        <span>{place.costType === "free" ? "Grátis" : "~R$" + place.cost}</span>
+                        <span>{getUnitPriceLabel(place.cost, place.pricing, place.costType)}</span>
                       </div>
                     </div>
 
