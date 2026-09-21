@@ -1,3 +1,4 @@
+import { formatTripDate } from "../../lib/dateUtils";
 import React from "react";
 import { useTripStore } from "../../lib/tripStore";
 import { BudgetBanner } from "./BudgetBanner";
@@ -41,13 +42,13 @@ export function ItineraryView() {
               Seu dia organizado
             </span>
             <h1 className="truncate font-serif text-2xl font-bold tracking-tight text-stone-950">
-              {config.destination}
+              {config.destination.name}
             </h1>
           </div>
           <div className="flex flex-shrink-0 items-center gap-1.5 text-xs font-medium text-stone-500">
             <Calendar className="h-3.5 w-3.5 text-emerald-800" />
             <span>
-              {config.date} • {config.startTime}–{config.endTime}
+              {formatTripDate(config.tripDate)} • {config.startTime}–{config.endTime}
             </span>
           </div>
         </div>
