@@ -10,6 +10,8 @@ import {
   RefreshCw,
   Navigation,
   Route as RouteIcon,
+  CloudRain,
+  Umbrella,
 } from "lucide-react";
 
 interface PlaceDetailSheetProps {
@@ -147,6 +149,35 @@ export function PlaceDetailSheet({
                   {stop.pricing.note}
                 </p>
               )}
+            </div>
+          )}
+
+          {stop.weatherRisk && stop.weatherRisk !== "none" && (
+            <div
+              className={
+                stop.weatherRisk === "conflict"
+                  ? "rounded-2xl border border-sky-200 bg-sky-50/80 p-3.5"
+                  : "rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5"
+              }
+            >
+              <div className="flex items-start gap-2.5">
+                {stop.weatherRisk === "conflict" ? (
+                  <CloudRain className="mt-0.5 h-4 w-4 flex-shrink-0 text-sky-800" />
+                ) : (
+                  <Umbrella className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-800" />
+                )}
+                <div>
+                  <span className="block text-xs font-bold text-stone-900">
+                    Clima neste horário
+                  </span>
+                  <p className="mt-0.5 text-xs leading-relaxed text-stone-600">
+                    {stop.weatherNote}
+                  </p>
+                  <span className="mt-1.5 inline-block text-[9.5px] font-semibold uppercase tracking-wide text-stone-400">
+                    Simulação climática
+                  </span>
+                </div>
+              </div>
             </div>
           )}
 

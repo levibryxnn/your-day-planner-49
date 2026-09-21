@@ -2,6 +2,7 @@ import React from "react";
 import { useTripStore } from "../../lib/tripStore";
 import { BudgetBanner } from "./BudgetBanner";
 import { TimelineStop } from "./TimelineStop";
+import { WeatherRiskBanner } from "./WeatherRiskBanner";
 import { Plus, Play, Calendar, CheckCircle2 } from "lucide-react";
 
 function minutesBetween(start: string, end: string) {
@@ -59,8 +60,9 @@ export function ItineraryView() {
         </div>
       )}
 
-      <div className="mb-5 px-5">
+      <div className="space-y-3 px-5 pb-5">
         <BudgetBanner />
+        <WeatherRiskBanner />
       </div>
 
       <div className="flex-1 px-5">

@@ -1,6 +1,6 @@
 import React from "react";
 import { TripStop } from "../../lib/types";
-import { Clock, ChevronRight, Pin } from "lucide-react";
+import { Clock, ChevronRight, Pin, CloudRain, Umbrella } from "lucide-react";
 
 interface TimelineStopProps {
   stop: TripStop;
@@ -101,6 +101,20 @@ export function TimelineStop({
               <h3 className="truncate text-sm font-semibold leading-snug text-stone-900">
                 {stop.name}
               </h3>
+
+              {stop.weatherRisk === "conflict" && (
+                <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-1 text-[10px] font-semibold text-sky-800">
+                  <CloudRain className="h-3 w-3" />
+                  <span>{stop.weatherProbability}% chuva neste horário</span>
+                </div>
+              )}
+
+              {stop.weatherRisk === "watch" && (
+                <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">
+                  <Umbrella className="h-3 w-3" />
+                  <span>{stop.weatherProbability}% chance de chuva</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-2 flex items-center justify-between border-t border-stone-100/80 pt-1 text-xs">
