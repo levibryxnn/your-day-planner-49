@@ -75,7 +75,7 @@ export function TourModeView() {
               Modo passeio
             </span>
             <h1 className="truncate font-serif text-lg font-bold tracking-tight text-stone-900">
-              Seu dia em {config.destination}
+              Seu dia em {config.destination.name}
             </h1>
           </div>
 
@@ -127,7 +127,7 @@ export function TourModeView() {
 
             <div className="absolute bottom-3 left-4 right-4 text-white">
               <span className="mb-0.5 block text-xs font-medium text-stone-200">
-                {currentStop.category} • {currentStop.neighborhood || config.destination}
+                {currentStop.category} • {currentStop.neighborhood || config.destination.name}
               </span>
               <h2 className="font-serif text-xl font-bold leading-tight text-white drop-shadow-sm">
                 {currentStop.name}
