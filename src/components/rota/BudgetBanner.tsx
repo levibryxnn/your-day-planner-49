@@ -1,18 +1,32 @@
 import React, { useState } from "react";
 import { useTripStore } from "../../lib/tripStore";
-import { ShieldCheck, Sliders, Check, Minus, Plus, X } from "lucide-react";
+import { ShieldCheck, Minus, Plus, X } from "lucide-react";
 
 interface BudgetBannerProps {
   compact?: boolean;
 }
 
 export function BudgetBanner({ compact = false }: BudgetBannerProps) {
-  const { totalBudget, totalPlanned, remainingBudget, updateConfig } = useTripStore();
+  const {
+    totalBudget,
+    totalPlanned,
+    remainingBudget,
+    updateConfig,
+    stops,
+    expenses,
+  } = useTripStore();
   const [isEditing, setIsEditing] = useState(false);
   const [tempBudget, setTempBudget] = useState(totalBudget);
 
-  const percentUsed = Math.min(100, Math.round((totalPlanned / totalBudget) * 100));
+  const percentUsed =
+    totalBudget > 0
+      ? Math.min(100, Math.round((totalPlanned / totalBudget) * 100))
+      : 0;
   const isOverBudget = remainingBudget < 0;
+  const expensesTotal = expenses.reduce(
+    (sum, expense) => sum + expense.estimatedCost,
+    0
+  );
 
   const handleOpenEdit = () => {
     setTempBudget(totalBudget);
@@ -26,19 +40,25 @@ export function BudgetBanner({ compact = false }: BudgetBannerProps) {
 
   if (compact) {
     return (
-      <div className="flex items-center justify-between px-4 py-2.5 bg-stone-100/90 rounded-2xl border border-stone-200/80">
+      <div className="flex items-center justify-between rounded-2xl border border-stone-200/80 bg-stone-50 px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-stone-500 font-medium">Orçamento:</span>
-          <span className="text-sm font-semibold text-stone-900">R${totalBudget}</span>
+          <span className="text-xs font-medium text-stone-500">Orçamento</span>
+          <span className="text-sm font-semibold text-stone-900">
+            {"R$" + totalBudget}
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-stone-500 font-medium">Margem:</span>
+          <span className="text-xs font-medium text-stone-500">Margem</span>
           <span
-            className={`text-sm font-bold ${
-              isOverBudget ? "text-amber-700" : "text-emerald-800"
-            }`}
+            className={
+              isOverBudget
+                ? "text-sm font-bold text-amber-700"
+                : "text-sm font-bold text-emerald-800"
+            }
           >
-            {isOverBudget ? `-R$${Math.abs(remainingBudget)}` : `R$${remainingBudget} livres`}
+            {isOverBudget
+              ? "-R$" + Math.abs(remainingBudget)
+              : "R$" + remainingBudget + " livres"}
           </span>
         </div>
       </div>
@@ -46,104 +66,118 @@ export function BudgetBanner({ compact = false }: BudgetBannerProps) {
   }
 
   return (
-    <div className="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all relative">
-      {/* Top row: Master Budget */}
-      <div className="flex items-baseline justify-between mb-3.5">
+    <div className="relative rounded-3xl border border-stone-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(41,37,36,0.035)] transition-all">
+      <div className="mb-3.5 flex items-baseline justify-between gap-4">
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-600 block">
-              Seu Orçamento
+            <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              Seu orçamento
             </span>
             <button
               onClick={handleOpenEdit}
-              className="text-[10px] text-stone-600 hover:text-stone-900 font-medium underline"
+              className="text-[10px] font-medium text-emerald-800 underline decoration-emerald-800/30 underline-offset-2 hover:text-emerald-950"
               title="Ajustar teto"
             >
               Ajustar
             </button>
           </div>
-          <div
+          <button
+            type="button"
             onClick={handleOpenEdit}
-            className="text-3xl font-serif font-bold text-stone-950 tracking-tight mt-0.5 cursor-pointer hover:opacity-80 transition-opacity"
+            className="mt-0.5 font-serif text-3xl font-bold tracking-tight text-stone-950 transition-opacity hover:opacity-80"
           >
-            R${totalBudget}
-          </div>
+            {"R$" + totalBudget}
+          </button>
         </div>
 
         <div className="text-right">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-600 block">
-            Saldo Restante
+          <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+            Saldo restante
           </span>
           <div
-            className={`text-xl font-semibold tracking-tight mt-0.5 flex items-center justify-end gap-1.5 ${
-              isOverBudget ? "text-amber-700" : "text-emerald-800"
-            }`}
+            className={
+              isOverBudget
+                ? "mt-0.5 flex items-center justify-end gap-1.5 text-xl font-semibold tracking-tight text-amber-700"
+                : "mt-0.5 flex items-center justify-end gap-1.5 text-xl font-semibold tracking-tight text-emerald-800"
+            }
           >
-            {!isOverBudget && <ShieldCheck className="w-4 h-4 text-emerald-700 inline" />}
+            {!isOverBudget && <ShieldCheck className="inline h-4 w-4 text-emerald-700" />}
             <span>
-              {isOverBudget ? `-R$${Math.abs(remainingBudget)} excedido` : `R$${remainingBudget} livres`}
+              {isOverBudget
+                ? "-R$" + Math.abs(remainingBudget) + " excedido"
+                : "R$" + remainingBudget + " livres"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Subtle Proportion Bar */}
-      <div className="w-full bg-stone-100 h-2 rounded-full overflow-hidden flex">
+      <div className="flex h-2 w-full overflow-hidden rounded-full bg-stone-100">
         <div
-          className={`h-full transition-all duration-500 rounded-full ${
-            isOverBudget ? "bg-amber-600" : "bg-stone-800"
-          }`}
-          style={{ width: `${percentUsed}%` }}
+          className={
+            isOverBudget
+              ? "h-full rounded-full bg-amber-600 transition-all duration-500"
+              : "h-full rounded-full bg-emerald-800 transition-all duration-500"
+          }
+          style={{ width: percentUsed + "%" }}
         />
       </div>
 
-      {/* Bottom Breakdown: 1-second clarity */}
-      <div className="flex items-center justify-between mt-3 text-xs text-stone-600 font-medium pt-1">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-stone-800 inline-block"></span>
-          <span>R${totalPlanned} previstos para 5 atividades e transporte</span>
+      <div className="mt-3 flex items-start justify-between gap-3 pt-1 text-xs font-medium text-stone-600">
+        <div className="flex items-start gap-1.5">
+          <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-800" />
+          <span>
+            {"R$" + totalPlanned + " previstos • " + stops.length + " paradas"}
+            {expensesTotal > 0 ? " + R$" + expensesTotal + " de deslocamento" : ""}
+          </span>
         </div>
-        <span className="text-[11px] text-stone-600 font-normal">
+        <span className="flex-shrink-0 text-[11px] font-normal text-stone-500">
           {percentUsed}% do total
         </span>
       </div>
 
-      {/* Inline Quick Edit Sheet */}
       {isEditing && (
-        <div className="absolute inset-0 bg-white/98 backdrop-blur-md rounded-3xl p-5 z-20 flex flex-col justify-between shadow-lg border border-stone-300 animate-in fade-in duration-200">
+        <div
+          className="absolute inset-0 z-20 flex flex-col justify-between rounded-3xl border border-stone-200 bg-[#FFFEFB]/98 p-5 shadow-lg backdrop-blur-md animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ajustar orçamento"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-900 uppercase tracking-wide">
-              Ajustar valor do orçamento
+            <span className="text-xs font-bold uppercase tracking-wide text-stone-900">
+              Ajustar orçamento
             </span>
             <button
               onClick={() => setIsEditing(false)}
-              className="w-7 h-7 rounded-full hover:bg-stone-100 text-stone-500 flex items-center justify-center"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100"
+              aria-label="Fechar ajuste de orçamento"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-3 my-2">
+          <div className="my-2 flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => setTempBudget((prev) => Math.max(100, prev - 50))}
-              className="w-10 h-10 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-800 flex items-center justify-center font-bold"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 font-bold text-stone-800 hover:bg-stone-100 active:scale-95"
+              aria-label="Diminuir orçamento em R$50"
             >
-              <Minus className="w-4 h-4 stroke-[2.5]" />
+              <Minus className="h-4 w-4 stroke-[2.5]" />
             </button>
 
             <div className="text-center">
-              <span className="text-3xl font-serif font-bold text-stone-950 font-mono">
-                R${tempBudget}
+              <span className="font-serif text-3xl font-bold text-stone-950">
+                {"R$" + tempBudget}
               </span>
             </div>
 
             <button
               type="button"
               onClick={() => setTempBudget((prev) => Math.min(2000, prev + 50))}
-              className="w-10 h-10 rounded-xl bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-800 flex items-center justify-center font-bold"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-stone-50 font-bold text-stone-800 hover:bg-stone-100 active:scale-95"
+              aria-label="Aumentar orçamento em R$50"
             >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <Plus className="h-4 w-4 stroke-[2.5]" />
             </button>
           </div>
 
@@ -154,21 +188,22 @@ export function BudgetBanner({ compact = false }: BudgetBannerProps) {
             step={25}
             value={tempBudget}
             onChange={(e) => setTempBudget(Number(e.target.value))}
-            className="w-full h-2 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-stone-950"
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-stone-100 accent-emerald-900"
+            aria-label="Novo orçamento"
           />
 
-          <div className="flex gap-2 mt-2">
+          <div className="mt-2 flex gap-2">
             <button
               onClick={() => setIsEditing(false)}
-              className="flex-1 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+              className="flex-1 rounded-xl border border-stone-200 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 py-2 rounded-xl bg-stone-950 hover:bg-black text-white text-xs font-semibold"
+              className="flex-1 rounded-xl bg-stone-900 py-2 text-xs font-semibold text-white hover:bg-stone-800"
             >
-              Salvar novo valor
+              Salvar
             </button>
           </div>
         </div>
