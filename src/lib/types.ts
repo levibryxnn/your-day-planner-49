@@ -2,6 +2,27 @@ export type CostType = "free" | "confirmed" | "estimated" | "unavailable";
 
 export type PriorityLevel = "required" | "preferred" | "suggested";
 
+export type WeatherCondition = "clear" | "cloudy" | "rain" | "storm";
+export type WeatherSensitivity = "outdoor" | "mixed" | "indoor";
+export type WeatherRisk = "none" | "watch" | "conflict";
+
+export interface WeatherSlot {
+  time: string;
+  temperatureC: number;
+  precipitationProbability: number;
+  condition: WeatherCondition;
+  description: string;
+}
+
+export interface WeatherSummary {
+  level: WeatherRisk;
+  headline: string;
+  detail: string;
+  affectedStopIds: string[];
+  peakPrecipitationProbability: number;
+  peakTime?: string;
+}
+
 export interface AgePriceBand {
   minAge: number;
   maxAge: number;
@@ -28,6 +49,10 @@ export interface TripStop {
   pricing?: PlacePricing;
   costBreakdown?: string[];
   costSummary?: string;
+  weatherSensitivity?: WeatherSensitivity;
+  weatherRisk?: WeatherRisk;
+  weatherProbability?: number;
+  weatherNote?: string;
   image: string;
   selectedByUser: boolean;
   priority: PriorityLevel;
@@ -68,6 +93,7 @@ export interface AddedPlaceDraft {
   cost: number;
   costType: CostType;
   pricing?: PlacePricing;
+  weatherSensitivity?: WeatherSensitivity;
   duration: string;
   image: string;
   priority: "required" | "preferred";
