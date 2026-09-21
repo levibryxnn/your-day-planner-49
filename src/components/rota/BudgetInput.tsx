@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Minus, Plus, ShieldCheck } from "lucide-react";
 
 interface BudgetInputProps {
@@ -16,24 +16,48 @@ export function BudgetInput({
   max = 2000,
   step = 25,
 }: BudgetInputProps) {
+  const [draftValue, setDraftValue] = useState(value.toLocaleString("pt-BR"));
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    if (!isTyping) {
+      setDraftValue(value.toLocaleString("pt-BR"));
+    }
+  }, [value, isTyping]);
+
   const clampValue = (nextValue: number) =>
     Math.min(max, Math.max(min, nextValue));
 
-  const handleDecrease = () => onChange(clampValue(value - 50));
-  const handleIncrease = () => onChange(clampValue(value + 50));
+  const commitValue = (nextValue: number) => {
+    const safeValue = clampValue(nextValue);
+    onChange(safeValue);
+    setDraftValue(safeValue.toLocaleString("pt-BR"));
+  };
+
+  const handleDecrease = () => commitValue(value - 50);
+  const handleIncrease = () => commitValue(value + 50);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(clampValue(Number(e.target.value)));
+    commitValue(Number(e.target.value));
   };
 
   const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, "");
-    if (!raw) {
-      onChange(min);
-      return;
-    }
+    setDraftValue(raw ? Number(raw).toLocaleString("pt-BR") : "");
 
-    onChange(clampValue(parseInt(raw, 10)));
+    if (!raw) return;
+
+    const parsed = Number(raw);
+    if (parsed >= min && parsed <= max) {
+      onChange(parsed);
+    }
+  };
+
+  const handleManualBlur = () => {
+    setIsTyping(false);
+    const raw = draftValue.replace(/\D/g, "");
+    const parsed = raw ? Number(raw) : min;
+    commitValue(parsed);
   };
 
   const presets = [250, 500, 750, 1000];
@@ -67,8 +91,10 @@ export function BudgetInput({
             <input
               type="text"
               inputMode="numeric"
-              value={value ? value.toLocaleString("pt-BR") : ""}
+              value={draftValue}
+              onFocus={() => setIsTyping(true)}
               onChange={handleManualInput}
+              onBlur={handleManualBlur}
               className="w-36 bg-transparent text-center font-serif text-4xl font-bold leading-none tracking-tight text-stone-950 outline-none sm:text-5xl"
               aria-label="Orçamento máximo do dia"
             />
@@ -116,14 +142,14 @@ export function BudgetInput({
             <button
               key={preset}
               type="button"
-              onClick={() => onChange(preset)}
+              onClick={() => commitValue(preset)}
               className={
                 value === preset
                   ? "rounded-xl bg-emerald-950 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all"
                   : "rounded-xl bg-stone-100 px-2.5 py-1.5 text-xs font-semibold text-stone-700 transition-all hover:bg-stone-200"
               }
             >
-              {"R$" + preset}
+              {"R$" + preset.toLocaleString("pt-BR")}
             </button>
           ))}
         </div>
