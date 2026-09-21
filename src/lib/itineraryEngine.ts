@@ -1,4 +1,5 @@
-import { BASE_SUGGESTED_STOPS } from "./mockData";
+import { BASE_SUGGESTED_STOPS, MOCK_HOURLY_WEATHER } from "./mockData";
+import { annotateStopsWithWeather } from "./weatherEngine";
 import { calculatePlacePrice } from "./pricingEngine";
 import {
   AddedPlaceDraft,
@@ -66,6 +67,7 @@ function placeToStop(
     baseCost: place.cost,
     costType: place.costType,
     pricing: place.pricing,
+    weatherSensitivity: place.weatherSensitivity,
     costBreakdown: pricingResult.breakdown,
     costSummary: pricingResult.summary,
     image: place.image,
@@ -210,6 +212,8 @@ export function generateMockItinerary(
     stops = scheduleStops(stops, config);
     expenses = buildTransportExpenses(config, stops.length);
   }
+
+  stops = annotateStopsWithWeather(stops, MOCK_HOURLY_WEATHER);
 
   return { stops, expenses };
 }
