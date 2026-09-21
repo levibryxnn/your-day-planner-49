@@ -119,7 +119,7 @@ export function WeatherRiskBanner() {
         <div className="mt-3 flex items-center gap-2 rounded-2xl border border-white/70 bg-white/60 px-3 py-2 text-[11px] font-medium text-stone-600">
           <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0 text-emerald-800" />
           <span>
-            O Rota continua acompanhando o risco climático ao longo do dia.
+            Nesta simulação, as atividades sensíveis já evitam o pior horário.
           </span>
         </div>
       )}
