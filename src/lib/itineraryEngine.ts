@@ -81,6 +81,8 @@ function placeToStop(
     rating: 4.8,
     reviewCount: 340,
     neighborhood: place.neighborhood,
+    dataConfidence: place.dataConfidence ?? "estimated",
+    source: place.source ?? { provider: "mock" },
   };
 }
 
