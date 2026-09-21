@@ -223,6 +223,8 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       costType: target.costType,
       pricing: target.pricing,
       weatherSensitivity: target.weatherSensitivity,
+      dataConfidence: target.dataConfidence,
+      source: target.source,
       duration: target.duration,
       image: target.image,
       priority: nextPriority === "required" ? "required" : "preferred",
