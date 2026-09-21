@@ -3,7 +3,7 @@ import { useTripStore } from "../../lib/tripStore";
 import { AddedPlaceDraft, PriorityLevel } from "../../lib/types";
 import { Plus, Trash2, ArrowRight, Pin, Compass } from "lucide-react";
 import { AddStopModal } from "./AddStopModal";
-import { getUnitPriceLabel } from "../../lib/pricingEngine";
+import { calculatePlacePrice, getUnitPriceLabel } from "../../lib/pricingEngine";
 
 export function UserPlacesView() {
   const {
@@ -44,6 +44,11 @@ export function UserPlacesView() {
           {userDraftPlaces.length > 0 ? (
             userDraftPlaces.map((place) => {
               const isRequired = place.priority === "required";
+              const groupPrice = calculatePlacePrice(
+                place.cost,
+                place.pricing,
+                config,
+              );
               return (
                 <div
                   key={place.id}
@@ -60,11 +65,14 @@ export function UserPlacesView() {
                         {place.category}
                       </span>
                       <h3 className="truncate text-sm font-bold text-stone-900">{place.name}</h3>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-stone-500">
+                      <div className="mt-0.5 text-xs text-stone-500">
                         <span>{place.neighborhood}</span>
-                        <span>•</span>
-                        <span>{getUnitPriceLabel(place.cost, place.pricing, place.costType)}</span>
+                        <span> • </span>
+                        <span>{groupPrice.summary}</span>
                       </div>
+                      <span className="mt-0.5 block text-[10.5px] text-stone-400">
+                        {getUnitPriceLabel(place.cost, place.pricing, place.costType)}
+                      </span>
                     </div>
 
                     <button
