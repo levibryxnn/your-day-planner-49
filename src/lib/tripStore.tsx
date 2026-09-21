@@ -101,7 +101,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     if (stepHistory.length > 1) {
       const newHistory = [...stepHistory];
       newHistory.pop();
-      const previousStep = newHistory[newHistory.length - 1];
+      const previousStep = newHistory[newHistory.length - 1] ?? "home";
       setStepHistory(newHistory);
       setStep(previousStep);
       return;
