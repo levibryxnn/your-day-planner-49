@@ -22,6 +22,14 @@ export interface TripStop {
   arrivalTime?: string;
 }
 
+export interface TripExpense {
+  id: string;
+  type: "transport" | "parking" | "food" | "ticket" | "other";
+  description: string;
+  estimatedCost: number;
+  costType: CostType;
+}
+
 export interface UserTripConfig {
   destination: string;
   date: string;

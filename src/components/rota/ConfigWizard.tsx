@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useTripStore } from "../../lib/tripStore";
 import { INTEREST_OPTIONS } from "../../lib/mockData";
+import { TimePickerSheet } from "./TimePickerSheet";
 import {
   ArrowRight,
   User,
-  Users,
   Clock,
   Car,
   Bus,
@@ -20,8 +20,29 @@ import {
   Camera,
 } from "lucide-react";
 
+type TimeField = "start" | "end" | null;
+
+function toMinutes(time: string) {
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function formatDuration(totalMinutes: number) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (minutes === 0) return hours + "h";
+  return hours + "h" + String(minutes).padStart(2, "0");
+}
+
 export function ConfigWizard() {
   const { step, config, updateConfig, goToStep } = useTripStore();
+  const [timeField, setTimeField] = useState<TimeField>(null);
+
+  const totalAvailableMinutes = useMemo(
+    () => toMinutes(config.endTime) - toMinutes(config.startTime),
+    [config.startTime, config.endTime]
+  );
+  const invalidTimeRange = totalAvailableMinutes <= 0;
 
   const renderIcon = (iconName: string) => {
     const props = { className: "w-5 h-5" };
@@ -49,61 +70,57 @@ export function ConfigWizard() {
 
   const toggleInterest = (label: string) => {
     const exists = config.interests.includes(label);
-    if (exists) {
-      updateConfig({ interests: config.interests.filter((i) => i !== label) });
-    } else {
-      updateConfig({ interests: [...config.interests, label] });
-    }
+    updateConfig({
+      interests: exists
+        ? config.interests.filter((interest) => interest !== label)
+        : [...config.interests, label],
+    });
   };
 
-  // STEP 1: Quem vai com você?
   if (step === "config_group") {
     return (
-      <div className="flex flex-col justify-between min-h-[calc(100vh-60px)] px-6 pt-6 pb-8 animate-in fade-in duration-300">
-        <div className="space-y-6 max-w-sm mx-auto w-full">
+      <div className="flex min-h-[calc(100vh-60px)] flex-col justify-between px-6 pb-8 pt-6 animate-in fade-in duration-300">
+        <div className="mx-auto w-full max-w-sm space-y-6">
           <div>
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wider block">
+            <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
               Etapa 1 de 4
             </span>
-            <h2 className="text-2xl font-serif font-bold text-stone-950 mt-1">
+            <h2 className="mt-1 font-serif text-2xl font-bold text-stone-950">
               Quem vai com você?
             </h2>
-            <p className="text-xs text-stone-600 mt-1">
+            <p className="mt-1 text-xs leading-relaxed text-stone-600">
               Adequamos os lugares e o ritmo do dia para o tamanho do seu grupo.
             </p>
           </div>
 
           <div className="space-y-4 pt-2">
-            {/* Adultos */}
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm flex items-center justify-between">
+            <div className="flex items-center justify-between rounded-2xl border border-stone-200/80 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700">
-                  <User className="w-5 h-5" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-900">
+                  <User className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-stone-900 block">Adultos</span>
-                  <span className="text-xs text-stone-600">A partir de 12 anos</span>
+                  <span className="block text-sm font-bold text-stone-900">Adultos</span>
+                  <span className="text-xs text-stone-500">A partir de 12 anos</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() =>
-                    updateConfig({ adults: Math.max(1, config.adults - 1) })
-                  }
-                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center transition-all"
+                  onClick={() => updateConfig({ adults: Math.max(1, config.adults - 1) })}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-stone-50 font-bold text-stone-700 transition-all hover:bg-stone-100"
                   aria-label="Diminuir adultos"
                 >
                   -
                 </button>
-                <span className="w-5 text-center font-bold text-base text-stone-950 font-mono">
+                <span className="w-5 text-center font-mono text-base font-bold text-stone-950">
                   {config.adults}
                 </span>
                 <button
                   type="button"
                   onClick={() => updateConfig({ adults: config.adults + 1 })}
-                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center transition-all"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-stone-50 font-bold text-stone-700 transition-all hover:bg-stone-100"
                   aria-label="Aumentar adultos"
                 >
                   +
@@ -111,36 +128,33 @@ export function ConfigWizard() {
               </div>
             </div>
 
-            {/* Crianças */}
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm flex items-center justify-between">
+            <div className="flex items-center justify-between rounded-2xl border border-stone-200/80 bg-white p-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700">
-                  <Baby className="w-5 h-5" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-900">
+                  <Baby className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-stone-900 block">Crianças</span>
-                  <span className="text-xs text-stone-600">Até 11 anos</span>
+                  <span className="block text-sm font-bold text-stone-900">Crianças</span>
+                  <span className="text-xs text-stone-500">Até 11 anos</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() =>
-                    updateConfig({ children: Math.max(0, config.children - 1) })
-                  }
-                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center transition-all"
+                  onClick={() => updateConfig({ children: Math.max(0, config.children - 1) })}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-stone-50 font-bold text-stone-700 transition-all hover:bg-stone-100"
                   aria-label="Diminuir crianças"
                 >
                   -
                 </button>
-                <span className="w-5 text-center font-bold text-base text-stone-950 font-mono">
+                <span className="w-5 text-center font-mono text-base font-bold text-stone-950">
                   {config.children}
                 </span>
                 <button
                   type="button"
                   onClick={() => updateConfig({ children: config.children + 1 })}
-                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold flex items-center justify-center transition-all"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-stone-50 font-bold text-stone-700 transition-all hover:bg-stone-100"
                   aria-label="Aumentar crianças"
                 >
                   +
@@ -150,84 +164,119 @@ export function ConfigWizard() {
           </div>
         </div>
 
-        <div className="max-w-sm mx-auto w-full pt-6">
+        <div className="mx-auto w-full max-w-sm pt-6">
           <button
             onClick={() => goToStep("config_time")}
-            className="w-full py-4 px-6 rounded-2xl bg-stone-950 hover:bg-black active:scale-[0.98] text-white text-sm font-semibold tracking-tight shadow-md flex items-center justify-center gap-2 group transition-all"
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 py-4 text-sm font-semibold tracking-tight text-white shadow-md transition-all hover:bg-stone-800 active:scale-[0.98]"
           >
             <span>Continuar</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
       </div>
     );
   }
 
-  // STEP 2: Quanto tempo temos?
   if (step === "config_time") {
     return (
-      <div className="flex flex-col justify-between min-h-[calc(100vh-60px)] px-6 pt-6 pb-8 animate-in fade-in duration-300">
-        <div className="space-y-6 max-w-sm mx-auto w-full">
-          <div>
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wider block">
-              Etapa 2 de 4
-            </span>
-            <h2 className="text-2xl font-serif font-bold text-stone-950 mt-1">
-              Quanto tempo temos?
-            </h2>
-            <p className="text-xs text-stone-600 mt-1">
-              Defina seu horário de saída e a hora em que deseja encerrar o dia.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm space-y-1">
-              <label className="text-[11px] font-semibold text-stone-600 uppercase block">
-                Horário inicial
-              </label>
-              <input
-                type="time"
-                value={config.startTime}
-                onChange={(e) => updateConfig({ startTime: e.target.value })}
-                className="w-full text-2xl font-mono font-bold text-stone-900 bg-transparent focus:outline-none"
-              />
+      <>
+        <div className="flex min-h-[calc(100vh-60px)] flex-col justify-between px-6 pb-8 pt-6 animate-in fade-in duration-300">
+          <div className="mx-auto w-full max-w-sm space-y-6">
+            <div>
+              <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                Etapa 2 de 4
+              </span>
+              <h2 className="mt-1 font-serif text-2xl font-bold text-stone-950">
+                Quanto tempo temos?
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-stone-600">
+                Escolha quando quer começar e até que horas deseja aproveitar o dia.
+              </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-stone-200/80 shadow-sm space-y-1">
-              <label className="text-[11px] font-semibold text-stone-600 uppercase block">
-                Voltar às
-              </label>
-              <input
-                type="time"
-                value={config.endTime}
-                onChange={(e) => updateConfig({ endTime: e.target.value })}
-                className="w-full text-2xl font-mono font-bold text-stone-900 bg-transparent focus:outline-none"
-              />
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setTimeField("start")}
+                className="rounded-2xl border border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-emerald-800/40 hover:shadow-md"
+              >
+                <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                  Saída
+                </span>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <strong className="font-mono text-2xl text-stone-950">{config.startTime}</strong>
+                  <Clock className="h-5 w-5 text-emerald-800" />
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTimeField("end")}
+                className="rounded-2xl border border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-emerald-800/40 hover:shadow-md"
+              >
+                <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                  Volta
+                </span>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <strong className="font-mono text-2xl text-stone-950">{config.endTime}</strong>
+                  <Clock className="h-5 w-5 text-emerald-800" />
+                </div>
+              </button>
+            </div>
+
+            <div
+              className={
+                invalidTimeRange
+                  ? "flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950"
+                  : "flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-xs text-emerald-950"
+              }
+            >
+              <Clock className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div>
+                <span className="block font-semibold">
+                  {invalidTimeRange
+                    ? "O horário de volta precisa ser depois da saída."
+                    : "Você terá " + formatDuration(totalAvailableMinutes) + " para aproveitar o dia."}
+                </span>
+                {!invalidTimeRange && (
+                  <span className="mt-0.5 block opacity-75">
+                    O roteiro será montado dentro dessa janela.
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-stone-100/80 border border-stone-200/60 flex items-center gap-3 text-xs text-stone-600 font-medium">
-            <Clock className="w-4 h-4 text-stone-600 flex-shrink-0" />
-            <span>
-              Total de 12 horas de disponibilidade com tempo confortável para cada parada.
-            </span>
+          <div className="mx-auto w-full max-w-sm pt-6">
+            <button
+              onClick={() => goToStep("config_transport")}
+              disabled={invalidTimeRange}
+              className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 py-4 text-sm font-semibold tracking-tight text-white shadow-md transition-all hover:bg-stone-800 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40"
+            >
+              <span>Continuar</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </button>
           </div>
         </div>
 
-        <div className="max-w-sm mx-auto w-full pt-6">
-          <button
-            onClick={() => goToStep("config_transport")}
-            className="w-full py-4 px-6 rounded-2xl bg-stone-950 hover:bg-black active:scale-[0.98] text-white text-sm font-semibold tracking-tight shadow-md flex items-center justify-center gap-2 group transition-all"
-          >
-            <span>Continuar</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-      </div>
+        <TimePickerSheet
+          isOpen={timeField === "start"}
+          title="Escolha o horário de saída"
+          value={config.startTime}
+          onChange={(value) => updateConfig({ startTime: value })}
+          onClose={() => setTimeField(null)}
+        />
+        <TimePickerSheet
+          isOpen={timeField === "end"}
+          title="Que horas você quer voltar?"
+          value={config.endTime}
+          onChange={(value) => updateConfig({ endTime: value })}
+          onClose={() => setTimeField(null)}
+        />
+      </>
     );
   }
 
-  // STEP 3: Como vocês querem se locomover?
   if (step === "config_transport") {
     const modes = [
       {
@@ -251,17 +300,17 @@ export function ConfigWizard() {
     ];
 
     return (
-      <div className="flex flex-col justify-between min-h-[calc(100vh-60px)] px-6 pt-6 pb-8 animate-in fade-in duration-300">
-        <div className="space-y-6 max-w-sm mx-auto w-full">
+      <div className="flex min-h-[calc(100vh-60px)] flex-col justify-between px-6 pb-8 pt-6 animate-in fade-in duration-300">
+        <div className="mx-auto w-full max-w-sm space-y-6">
           <div>
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wider block">
+            <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
               Etapa 3 de 4
             </span>
-            <h2 className="text-2xl font-serif font-bold text-stone-950 mt-1">
+            <h2 className="mt-1 font-serif text-2xl font-bold leading-tight text-stone-950">
               Como vocês querem se locomover?
             </h2>
-            <p className="text-xs text-stone-600 mt-1">
-              Calculamos os custos de deslocamento e vagas conforme sua escolha.
+            <p className="mt-1 text-xs leading-relaxed text-stone-600">
+              Estimamos deslocamentos e custos conforme sua escolha.
             </p>
           </div>
 
@@ -270,68 +319,67 @@ export function ConfigWizard() {
               const Icon = mode.icon;
               const isSelected = config.transportMode === mode.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={mode.id}
                   onClick={() => updateConfig({ transportMode: mode.id })}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center gap-3.5 ${
+                  className={
                     isSelected
-                      ? "bg-white border-stone-950 shadow-md ring-1 ring-stone-950"
-                      : "bg-white/80 border-stone-200/80 hover:border-stone-300"
-                  }`}
+                      ? "flex w-full items-center gap-3.5 rounded-2xl border border-emerald-800/50 bg-emerald-50/60 p-4 text-left shadow-sm transition-all"
+                      : "flex w-full items-center gap-3.5 rounded-2xl border border-stone-200/80 bg-white p-4 text-left transition-all hover:border-stone-300"
+                  }
+                  aria-pressed={isSelected}
                 >
                   <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${
+                    className={
                       isSelected
-                        ? "bg-stone-950 text-white"
-                        : "bg-stone-100 text-stone-600"
-                    }`}
+                        ? "flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-900 text-white"
+                        : "flex h-11 w-11 items-center justify-center rounded-xl bg-stone-100 text-stone-600"
+                    }
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <span className="text-sm font-bold text-stone-900 block">
-                      {mode.label}
-                    </span>
-                    <span className="text-xs text-stone-600">{mode.desc}</span>
+                    <span className="block text-sm font-bold text-stone-900">{mode.label}</span>
+                    <span className="text-xs text-stone-500">{mode.desc}</span>
                   </div>
                   {isSelected && (
-                    <div className="w-5 h-5 rounded-full bg-stone-950 text-white flex items-center justify-center">
-                      <Check className="w-3 h-3 stroke-[3]" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-900 text-white">
+                      <Check className="h-3 w-3 stroke-[3]" />
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
 
-        <div className="max-w-sm mx-auto w-full pt-6">
+        <div className="mx-auto w-full max-w-sm pt-6">
           <button
             onClick={() => goToStep("config_interests")}
-            className="w-full py-4 px-6 rounded-2xl bg-stone-950 hover:bg-black active:scale-[0.98] text-white text-sm font-semibold tracking-tight shadow-md flex items-center justify-center gap-2 group transition-all"
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 py-4 text-sm font-semibold tracking-tight text-white shadow-md transition-all hover:bg-stone-800 active:scale-[0.98]"
           >
             <span>Continuar</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
       </div>
     );
   }
 
-  // STEP 4: O que faria esse dia valer a pena? (Interesses)
   if (step === "config_interests") {
     return (
-      <div className="flex flex-col justify-between min-h-[calc(100vh-60px)] px-6 pt-6 pb-8 animate-in fade-in duration-300">
-        <div className="space-y-5 max-w-sm mx-auto w-full">
+      <div className="flex min-h-[calc(100vh-60px)] flex-col justify-between px-6 pb-8 pt-6 animate-in fade-in duration-300">
+        <div className="mx-auto w-full max-w-sm space-y-5">
           <div>
-            <span className="text-[11px] font-semibold text-stone-600 uppercase tracking-wider block">
+            <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500">
               Etapa 4 de 4
             </span>
-            <h2 className="text-2xl font-serif font-bold text-stone-950 mt-1">
+            <h2 className="mt-1 font-serif text-2xl font-bold text-stone-950">
               O que faria esse dia valer a pena?
             </h2>
-            <p className="text-xs text-stone-600 mt-1">
-              Selecione o que mais combina com seu momento. Sem exageros.
+            <p className="mt-1 text-xs leading-relaxed text-stone-600">
+              Escolha o que combina com vocês. Você pode selecionar mais de uma opção.
             </p>
           </div>
 
@@ -343,44 +391,43 @@ export function ConfigWizard() {
                   key={interest.id}
                   type="button"
                   onClick={() => toggleInterest(interest.label)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between h-24 ${
+                  className={
                     isSelected
-                      ? "bg-white border-stone-950 shadow-sm ring-1 ring-stone-950"
-                      : "bg-white/80 border-stone-200/80 hover:border-stone-300"
-                  }`}
+                      ? "flex h-24 flex-col justify-between rounded-2xl border border-emerald-800/50 bg-emerald-50/60 p-3.5 text-left shadow-sm transition-all"
+                      : "flex h-24 flex-col justify-between rounded-2xl border border-stone-200/80 bg-white p-3.5 text-left transition-all hover:border-stone-300"
+                  }
+                  aria-pressed={isSelected}
                 >
-                  <div className="flex items-center justify-between w-full">
+                  <div className="flex w-full items-center justify-between">
                     <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                      className={
                         isSelected
-                          ? "bg-stone-950 text-white"
-                          : "bg-stone-100 text-stone-600"
-                      }`}
+                          ? "flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-900 text-white"
+                          : "flex h-8 w-8 items-center justify-center rounded-xl bg-stone-100 text-stone-600"
+                      }
                     >
                       {renderIcon(interest.icon)}
                     </div>
                     {isSelected && (
-                      <div className="w-4 h-4 rounded-full bg-stone-950 text-white flex items-center justify-center">
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-900 text-white">
+                        <Check className="h-2.5 w-2.5 stroke-[3]" />
                       </div>
                     )}
                   </div>
-                  <span className="text-xs font-bold text-stone-900 mt-2">
-                    {interest.label}
-                  </span>
+                  <span className="mt-2 text-xs font-bold text-stone-900">{interest.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="max-w-sm mx-auto w-full pt-6">
+        <div className="mx-auto w-full max-w-sm pt-6">
           <button
             onClick={() => goToStep("user_places")}
-            className="w-full py-4 px-6 rounded-2xl bg-stone-950 hover:bg-black active:scale-[0.98] text-white text-sm font-semibold tracking-tight shadow-md flex items-center justify-center gap-2 group transition-all"
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 py-4 text-sm font-semibold tracking-tight text-white shadow-md transition-all hover:bg-stone-800 active:scale-[0.98]"
           >
-            <span>Próximo: Lugares que quero incluir</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span>Próximo: lugares que quero incluir</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
       </div>

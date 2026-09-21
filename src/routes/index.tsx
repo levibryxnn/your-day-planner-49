@@ -67,9 +67,9 @@ function RotaContent() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex items-center justify-center p-0 sm:p-4 selection:bg-stone-900 selection:text-white">
+    <div className="min-h-screen bg-[#ECE9E1] flex items-center justify-center p-0 sm:p-4 selection:bg-emerald-900 selection:text-white">
       {/* Mobile-first frame (centered on desktop, native on mobile) */}
-      <div className="w-full max-w-md min-h-screen sm:min-h-[850px] sm:max-h-[95vh] bg-[#FAFAF8] flex flex-col relative sm:rounded-3xl shadow-xl sm:border border-stone-200/80 overflow-y-auto overflow-x-hidden">
+      <div className="w-full max-w-md min-h-screen sm:min-h-[850px] sm:max-h-[95vh] bg-[#F9F7F2] flex flex-col relative sm:rounded-3xl shadow-xl sm:border border-stone-200/80 overflow-y-auto overflow-x-hidden">
         {/* Navigation Bar */}
         <HeaderNav {...getHeaderProps()} />
 

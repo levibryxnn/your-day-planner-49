@@ -1,12 +1,18 @@
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import {
+  AddedPlaceDraft,
+  PriorityLevel,
+  StepState,
+  TripExpense,
   TripStop,
   UserTripConfig,
-  AddedPlaceDraft,
-  StepState,
-  PriorityLevel,
 } from "./types";
-import { INITIAL_CONFIG, INITIAL_STOPS, AVAILABLE_MOCK_PLACES } from "./mockData";
+import { INITIAL_CONFIG } from "./mockData";
+import { generateMockItinerary } from "./itineraryEngine";
+import {
+  calculateRemainingBudget,
+  calculateTotalPlanned,
+} from "./budgetEngine";
 
 interface ConflictInfo {
   place: AddedPlaceDraft;
@@ -20,43 +26,41 @@ interface TripContextType {
   goBack: () => void;
   resetTrip: () => void;
 
-  // Config
   config: UserTripConfig;
   updateConfig: (patch: Partial<UserTripConfig>) => void;
 
-  // User places selection before generation
   userDraftPlaces: AddedPlaceDraft[];
   addUserDraftPlace: (place: AddedPlaceDraft) => void;
   removeUserDraftPlace: (placeId: string) => void;
   toggleDraftPriority: (placeId: string) => void;
 
-  // Stops and itinerary
   stops: TripStop[];
+  expenses: TripExpense[];
+  generateItinerary: (placesOverride?: AddedPlaceDraft[]) => void;
   totalBudget: number;
   totalPlanned: number;
   remainingBudget: number;
 
-  // Detail sheet
   selectedStop: TripStop | null;
   openStopDetail: (stop: TripStop) => void;
   closeStopDetail: () => void;
   toggleStopPriority: (stopId: string) => void;
   swapStopAlternative: (stopId: string) => void;
 
-  // Adding stop post-generation
   isAddStopOpen: boolean;
   openAddStop: () => void;
   closeAddStop: () => void;
-  handleAddStopToItinerary: (place: AddedPlaceDraft, priority: PriorityLevel) => void;
+  handleAddStopToItinerary: (
+    place: AddedPlaceDraft,
+    priority: PriorityLevel
+  ) => void;
 
-  // Conflict management
   conflict: ConflictInfo | null;
   resolveKeepAndAdjust: () => void;
   resolveChangePlace: () => void;
   resolveIncreaseBudget: () => void;
   dismissConflict: () => void;
 
-  // Tour Mode
   tourStopIndex: number;
   nextTourStop: () => void;
   prevTourStop: () => void;
@@ -69,17 +73,16 @@ interface TripContextType {
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
+const INITIAL_PLAN = generateMockItinerary(INITIAL_CONFIG, []);
 
 export function TripProvider({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState<StepState>("home");
   const [stepHistory, setStepHistory] = useState<StepState[]>(["home"]);
 
   const [config, setConfig] = useState<UserTripConfig>(INITIAL_CONFIG);
-  const [userDraftPlaces, setUserDraftPlaces] = useState<AddedPlaceDraft[]>([
-    AVAILABLE_MOCK_PLACES[0], // Pre-selected Mocotó
-  ]);
-
-  const [stops, setStops] = useState<TripStop[]>(INITIAL_STOPS);
+  const [userDraftPlaces, setUserDraftPlaces] = useState<AddedPlaceDraft[]>([]);
+  const [stops, setStops] = useState<TripStop[]>(INITIAL_PLAN.stops);
+  const [expenses, setExpenses] = useState<TripExpense[]>(INITIAL_PLAN.expenses);
   const [selectedStop, setSelectedStop] = useState<TripStop | null>(null);
 
   const [isAddStopOpen, setIsAddStopOpen] = useState(false);
@@ -89,7 +92,6 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const [isIntentModalOpen, setIsIntentModalOpen] = useState(false);
   const [lastFeedbackMessage, setLastFeedbackMessage] = useState<string | null>(null);
 
-  // Navigation
   const goToStep = (nextStep: StepState) => {
     setStepHistory((prev) => [...prev, nextStep]);
     setStep(nextStep);
@@ -99,18 +101,21 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     if (stepHistory.length > 1) {
       const newHistory = [...stepHistory];
       newHistory.pop();
-      const prevStep = newHistory[newHistory.length - 1];
+      const previousStep = newHistory[newHistory.length - 1] ?? "home";
       setStepHistory(newHistory);
-      setStep(prevStep);
-    } else {
-      setStep("home");
+      setStep(previousStep);
+      return;
     }
+
+    setStep("home");
   };
 
   const resetTrip = () => {
+    const nextPlan = generateMockItinerary(INITIAL_CONFIG, []);
     setConfig(INITIAL_CONFIG);
-    setUserDraftPlaces([AVAILABLE_MOCK_PLACES[0]]);
-    setStops(INITIAL_STOPS);
+    setUserDraftPlaces([]);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
     setSelectedStop(null);
     setConflict(null);
     setTourStopIndex(0);
@@ -123,195 +128,216 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setConfig((prev) => ({ ...prev, ...patch }));
   };
 
-  // Draft places handlers
   const addUserDraftPlace = (place: AddedPlaceDraft) => {
-    if (!userDraftPlaces.some((p) => p.id === place.id)) {
-      setUserDraftPlaces((prev) => [...prev, place]);
-    }
+    setUserDraftPlaces((prev) =>
+      prev.some((item) => item.id === place.id) ? prev : [...prev, place]
+    );
   };
 
   const removeUserDraftPlace = (placeId: string) => {
-    setUserDraftPlaces((prev) => prev.filter((p) => p.id !== placeId));
+    setUserDraftPlaces((prev) => prev.filter((place) => place.id !== placeId));
   };
 
   const toggleDraftPriority = (placeId: string) => {
     setUserDraftPlaces((prev) =>
-      prev.map((p) =>
-        p.id === placeId
-          ? { ...p, priority: p.priority === "required" ? "preferred" : "required" }
-          : p
+      prev.map((place) =>
+        place.id === placeId
+          ? {
+              ...place,
+              priority:
+                place.priority === "required" ? "preferred" : "required",
+            }
+          : place
       )
     );
   };
 
-  // Calculations
+  const generateItinerary = (placesOverride?: AddedPlaceDraft[]) => {
+    const chosenPlaces = placesOverride ?? userDraftPlaces;
+    const nextPlan = generateMockItinerary(config, chosenPlaces);
+
+    if (placesOverride) setUserDraftPlaces(placesOverride);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
+    setConflict(null);
+    setLastFeedbackMessage(null);
+  };
+
   const totalBudget = config.budget;
-  const totalPlanned = useMemo(() => {
-    return stops.reduce((acc, stop) => acc + (stop.cost || 0), 0);
-  }, [stops]);
+  const totalPlanned = useMemo(
+    () => calculateTotalPlanned(stops, expenses),
+    [stops, expenses]
+  );
+  const remainingBudget = useMemo(
+    () => calculateRemainingBudget(totalBudget, stops, expenses),
+    [totalBudget, stops, expenses]
+  );
 
-  const remainingBudget = totalBudget - totalPlanned;
-
-  // Detail Sheet
   const openStopDetail = (stop: TripStop) => setSelectedStop(stop);
   const closeStopDetail = () => setSelectedStop(null);
 
   const toggleStopPriority = (stopId: string) => {
+    const target = stops.find((stop) => stop.id === stopId);
+    if (!target) return;
+
+    const nextPriority: PriorityLevel =
+      target.priority === "required" ? "preferred" : "required";
+
+    const draftFromStop: AddedPlaceDraft = {
+      id: target.id.startsWith("user-")
+        ? target.id.replace(/^user-/, "")
+        : "saved-" + target.id,
+      name: target.name,
+      category: target.category,
+      cost: target.cost,
+      costType: target.costType,
+      duration: target.duration,
+      image: target.image,
+      priority: nextPriority === "required" ? "required" : "preferred",
+      neighborhood: target.neighborhood ?? config.destination,
+      description: target.description,
+    };
+
+    setUserDraftPlaces((prev) => {
+      const matchingIndex = prev.findIndex(
+        (place) =>
+          place.id === draftFromStop.id ||
+          place.name.toLowerCase() === target.name.toLowerCase()
+      );
+
+      if (matchingIndex === -1) {
+        return [...prev, draftFromStop];
+      }
+
+      return prev.map((place, index) =>
+        index === matchingIndex
+          ? { ...place, priority: draftFromStop.priority }
+          : place
+      );
+    });
+
     setStops((prev) =>
-      prev.map((s) => {
-        if (s.id === stopId) {
-          const nextPriority = s.priority === "required" ? "suggested" : "required";
-          return {
-            ...s,
+      prev.map((stop) =>
+        stop.id === stopId
+          ? {
+              ...stop,
+              priority: nextPriority,
+              selectedByUser: true,
+              whyInRoute:
+                nextPriority === "required"
+                  ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
+                  : "Você quer este lugar no roteiro, mas permite ajustes se tempo ou orçamento exigirem.",
+            }
+          : stop
+      )
+    );
+
+    setSelectedStop((prev) =>
+      prev?.id === stopId
+        ? {
+            ...prev,
             priority: nextPriority,
             selectedByUser: true,
             whyInRoute:
               nextPriority === "required"
-                ? "Você marcou este local como alta prioridade. O roteiro foi travado para garantir sua visita sem estourar o orçamento."
-                : "Sugestão ajustada de acordo com as preferências do seu grupo.",
-          };
-        }
-        return s;
-      })
+                ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
+                : "Você quer este lugar no roteiro, mas permite ajustes se tempo ou orçamento exigirem.",
+          }
+        : prev
     );
-    if (selectedStop && selectedStop.id === stopId) {
-      setSelectedStop((prev) =>
-        prev
-          ? {
-              ...prev,
-              priority: prev.priority === "required" ? "suggested" : "required",
-              selectedByUser: true,
-            }
-          : null
-      );
-    }
-    setLastFeedbackMessage("Prioridade atualizada com sucesso.");
+
+    setLastFeedbackMessage(
+      nextPriority === "required"
+        ? "Esta parada agora é prioridade."
+        : "Esta parada ficou flexível, mas continua sendo uma escolha sua."
+    );
   };
 
   const swapStopAlternative = (stopId: string) => {
     setStops((prev) =>
-      prev.map((s) => {
-        if (s.id === stopId) {
-          return {
-            ...s,
-            name: s.name.includes("MAM")
-              ? "Pavilhão Japonês & Jardim"
-              : s.name.includes("Mirante")
-              ? "Café da Praça Buenos Aires"
-              : s.name,
-            cost: Math.max(0, s.cost - 20),
-            whyInRoute: "Substituição realizada para proporcionar uma alternativa tranquila e mais econômica.",
-          };
-        }
-        return s;
+      prev.map((stop) => {
+        if (stop.id !== stopId) return stop;
+
+        return {
+          ...stop,
+          name: stop.name.includes("MAM")
+            ? "Jardim das Esculturas"
+            : stop.name.includes("Café")
+            ? "Pausa em praça arborizada"
+            : stop.name,
+          cost: Math.max(0, stop.cost - 20),
+          costType: stop.cost <= 20 ? "free" : stop.costType,
+          whyInRoute:
+            "Substituição simulada por uma alternativa mais econômica e compatível com o dia.",
+        };
       })
     );
+
     setSelectedStop(null);
-    setLastFeedbackMessage("Parada substituída por uma alternativa viável.");
+    setLastFeedbackMessage("Parada substituída por uma alternativa mais econômica.");
   };
 
-  // Adding stop to itinerary
   const openAddStop = () => setIsAddStopOpen(true);
   const closeAddStop = () => setIsAddStopOpen(false);
 
-  const handleAddStopToItinerary = (place: AddedPlaceDraft, priority: PriorityLevel) => {
+  const handleAddStopToItinerary = (
+    place: AddedPlaceDraft,
+    priority: PriorityLevel
+  ) => {
     setIsAddStopOpen(false);
-    const potentialNewTotal = totalPlanned + place.cost;
 
-    if (potentialNewTotal > totalBudget && priority === "required") {
+    const placeWithPriority: AddedPlaceDraft = {
+      ...place,
+      priority: priority === "required" ? "required" : "preferred",
+    };
+    const nextUserPlaces = [
+      ...userDraftPlaces.filter((item) => item.id !== place.id),
+      placeWithPriority,
+    ];
+
+    const nextPlan = generateMockItinerary(config, nextUserPlaces);
+    const nextTotal = calculateTotalPlanned(nextPlan.stops, nextPlan.expenses);
+
+    if (nextTotal > totalBudget && priority === "required") {
       setConflict({
-        place,
-        overflowAmount: potentialNewTotal - totalBudget,
-        newTotal: potentialNewTotal,
+        place: placeWithPriority,
+        overflowAmount: nextTotal - totalBudget,
+        newTotal: nextTotal,
       });
       return;
     }
 
-    const newStop: TripStop = {
-      id: `stop-${Date.now()}`,
-      name: place.name,
-      category: place.category,
-      scheduledTime: "16:45",
-      duration: place.duration,
-      cost: place.cost,
-      costType: place.costType,
-      image: place.image,
-      selectedByUser: true,
-      priority,
-      whyInRoute:
-        priority === "required"
-          ? "Você escolheu este lugar como parada obrigatória. Reorganizamos a tarde para garantir sua visita."
-          : "Você adicionou este lugar. Encaixamos no percurso da tarde aproveitando o tempo disponível.",
-      description: place.description,
-      rating: 4.8,
-      reviewCount: 340,
-      neighborhood: place.neighborhood,
-      departureOffsetMinutes: 300,
-      arrivalTime: "16:50",
-    };
-
-    // Insert before the last café pause
-    setStops((prev) => {
-      const copy = [...prev];
-      copy.splice(Math.max(1, copy.length - 2), 0, newStop);
-      return copy;
-    });
-
+    setUserDraftPlaces(nextUserPlaces);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
     setLastFeedbackMessage(
-      `"${place.name}" foi adicionado ao seu dia e o percurso foi reorganizado!`
+      '"' + place.name + '" foi incluído e o restante do dia foi reorganizado.'
     );
   };
 
-  // Conflict resolutions
   const resolveKeepAndAdjust = () => {
     if (!conflict) return;
-    const { place } = conflict;
 
-    // Recalibrate stops: convert paid museum/cafe to free or cheaper alternatives
-    setStops((prev) => {
-      const adjusted = prev.map((s) => {
-        if (s.id === "stop-2") {
-          // MAM (R$50) -> Jardim das Esculturas (Grátis)
-          return {
-            ...s,
-            name: "Jardim das Esculturas (Ibirapuera)",
-            cost: 0,
-            costType: "free" as const,
-            whyInRoute: "Ajustado automaticamente para acomodar sua escolha sem estourar o orçamento.",
-          };
-        }
-        if (s.id === "stop-6") {
-          // Deslocamento reduzido
-          return { ...s, cost: 45 };
-        }
-        return s;
-      });
+    const nextUserPlaces = [
+      ...userDraftPlaces.filter((item) => item.id !== conflict.place.id),
+      { ...conflict.place, priority: "required" as const },
+    ];
+    const nextPlan = generateMockItinerary(config, nextUserPlaces);
 
-      const newStop: TripStop = {
-        id: `stop-${Date.now()}`,
-        name: place.name,
-        category: place.category,
-        scheduledTime: "16:30",
-        duration: place.duration,
-        cost: place.cost,
-        costType: place.costType,
-        image: place.image,
-        selectedByUser: true,
-        priority: "required",
-        whyInRoute: "Você escolheu este lugar. Mantivemos sua prioridade e ajustamos as paradas sugeridas pelo sistema.",
-        description: place.description,
-        rating: 4.8,
-        reviewCount: 500,
-        neighborhood: place.neighborhood,
-      };
-
-      adjusted.splice(3, 0, newStop);
-      return adjusted;
-    });
-
+    setUserDraftPlaces(nextUserPlaces);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(
-      `Mantivemos "${place.name}" e ajustamos paradas secundárias. Seu orçamento continua dentro dos R$${totalBudget}!`
+      'Mantivemos "' +
+        conflict.place.name +
+        '" e reorganizamos primeiro as paradas flexíveis.'
     );
   };
 
@@ -322,42 +348,35 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   const resolveIncreaseBudget = () => {
     if (!conflict) return;
-    const { place, newTotal } = conflict;
-    setConfig((prev) => ({ ...prev, budget: newTotal }));
 
-    const newStop: TripStop = {
-      id: `stop-${Date.now()}`,
-      name: place.name,
-      category: place.category,
-      scheduledTime: "16:30",
-      duration: place.duration,
-      cost: place.cost,
-      costType: place.costType,
-      image: place.image,
-      selectedByUser: true,
-      priority: "required",
-      whyInRoute: "Você escolheu este lugar. O orçamento foi atualizado conforme sua aprovação.",
-      description: place.description,
-      rating: 4.8,
-      reviewCount: 500,
-      neighborhood: place.neighborhood,
+    const nextConfig: UserTripConfig = {
+      ...config,
+      budget: conflict.newTotal,
     };
+    const nextUserPlaces = [
+      ...userDraftPlaces.filter((item) => item.id !== conflict.place.id),
+      { ...conflict.place, priority: "required" as const },
+    ];
+    const nextPlan = generateMockItinerary(nextConfig, nextUserPlaces);
 
-    setStops((prev) => {
-      const copy = [...prev];
-      copy.splice(3, 0, newStop);
-      return copy;
-    });
-
+    setConfig(nextConfig);
+    setUserDraftPlaces(nextUserPlaces);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(
-      `Orçamento atualizado para R$${newTotal} e "${place.name}" mantido com segurança.`
+      'Orçamento atualizado para R$' +
+        conflict.newTotal +
+        ' e "' +
+        conflict.place.name +
+        '" foi mantido.'
     );
   };
 
   const dismissConflict = () => setConflict(null);
 
-  // Tour mode controls
   const nextTourStop = () => {
     if (tourStopIndex < stops.length - 1) {
       setTourStopIndex((prev) => prev + 1);
@@ -375,34 +394,54 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   const handleSelectIntent = (intentId: string) => {
     setIsIntentModalOpen(false);
+
     switch (intentId) {
       case "eat":
-        setLastFeedbackMessage("Buscamos uma opção gastronômica autêntica próxima da sua localização.");
+        setLastFeedbackMessage(
+          "Simulamos uma opção gastronômica próxima sem alterar suas prioridades."
+        );
         break;
       case "rest":
-        setLastFeedbackMessage("Adicionamos uma pausa sombreada de 20 min sem afetar o horário final.");
+        setLastFeedbackMessage(
+          "Incluímos uma pausa curta sem comprometer o horário final."
+        );
         break;
       case "free":
         setStops((prev) =>
-          prev.map((s, idx) =>
-            idx === tourStopIndex && s.cost > 0
-              ? { ...s, name: `${s.name} (Área Pública Aberta)`, cost: 0, costType: "free" }
-              : s
+          prev.map((stop, index) =>
+            index === tourStopIndex &&
+            stop.cost > 0 &&
+            stop.priority !== "required"
+              ? {
+                  ...stop,
+                  name: stop.name + " — alternativa gratuita",
+                  cost: 0,
+                  costType: "free",
+                }
+              : stop
           )
         );
-        setLastFeedbackMessage("Próxima parada convertida para atividade gratuita.");
+        setLastFeedbackMessage(
+          "A próxima parada flexível foi trocada por uma alternativa gratuita."
+        );
         break;
       case "save":
-        setLastFeedbackMessage("Reorganizamos as paradas seguintes para priorizar opções com menor consumo de saldo.");
+        setLastFeedbackMessage(
+          "Priorizamos opções de menor custo nas próximas paradas flexíveis."
+        );
         break;
       case "indoor":
-        setLastFeedbackMessage("Identificamos opções cobertas e climatizadas para a tarde.");
+        setLastFeedbackMessage(
+          "Simulamos opções cobertas para as próximas paradas."
+        );
         break;
       case "add":
         setIsAddStopOpen(true);
         break;
       case "change":
-        setLastFeedbackMessage("Alternamos a rota para um percurso mais calmo em áreas verdes.");
+        setLastFeedbackMessage(
+          "O foco das próximas paradas foi ajustado sem remover suas prioridades."
+        );
         break;
       default:
         break;
@@ -425,6 +464,8 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
         removeUserDraftPlace,
         toggleDraftPriority,
         stops,
+        expenses,
+        generateItinerary,
         totalBudget,
         totalPlanned,
         remainingBudget,
@@ -459,9 +500,11 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useTripStore() {
-  const ctx = useContext(TripContext);
-  if (!ctx) {
+  const context = useContext(TripContext);
+
+  if (!context) {
     throw new Error("useTripStore must be used within a TripProvider");
   }
-  return ctx;
+
+  return context;
 }
