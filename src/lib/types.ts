@@ -1,3 +1,5 @@
+import type { ConfidenceLevel, DestinationRef, SourceReference } from "./domain";
+
 export type CostType = "free" | "confirmed" | "estimated" | "unavailable";
 
 export type PriorityLevel = "required" | "preferred" | "suggested";
@@ -53,6 +55,9 @@ export interface TripStop {
   weatherRisk?: WeatherRisk;
   weatherProbability?: number;
   weatherNote?: string;
+  dataConfidence?: ConfidenceLevel;
+  source?: SourceReference;
+  lastVerifiedAt?: string;
   image: string;
   selectedByUser: boolean;
   priority: PriorityLevel;
@@ -74,8 +79,8 @@ export interface TripExpense {
 }
 
 export interface UserTripConfig {
-  destination: string;
-  date: string;
+  destination: DestinationRef;
+  tripDate: string;
   budget: number;
   adults: number;
   children: number;
@@ -94,6 +99,8 @@ export interface AddedPlaceDraft {
   costType: CostType;
   pricing?: PlacePricing;
   weatherSensitivity?: WeatherSensitivity;
+  dataConfidence?: ConfidenceLevel;
+  source?: SourceReference;
   duration: string;
   image: string;
   priority: "required" | "preferred";
