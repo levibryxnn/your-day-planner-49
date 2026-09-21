@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useTripStore } from "../../lib/tripStore";
 import { INTEREST_OPTIONS } from "../../lib/mockData";
 import { TimePickerSheet } from "./TimePickerSheet";
+import { formatTripDate } from "../../lib/dateUtils";
 import {
   ArrowRight,
   User,
@@ -18,6 +19,7 @@ import {
   BookOpen,
   Compass,
   Camera,
+  CalendarDays,
 } from "lucide-react";
 
 type TimeField = "start" | "end" | null;
@@ -253,14 +255,42 @@ export function ConfigWizard() {
                 Etapa 2 de 4
               </span>
               <h2 className="mt-1 font-serif text-2xl font-bold text-stone-950">
-                Quanto tempo temos?
+                Quando e quanto tempo temos?
               </h2>
               <p className="mt-1 text-xs leading-relaxed text-stone-600">
-                Escolha quando quer começar e até que horas deseja aproveitar o dia.
+                Defina a data real da viagem e a janela de tempo do passeio.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <label
+                htmlFor="trip-date"
+                className="block text-[11px] font-semibold uppercase tracking-wider text-stone-500"
+              >
+                Data do passeio
+              </label>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-900">
+                  <CalendarDays className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <input
+                    id="trip-date"
+                    type="date"
+                    value={config.tripDate}
+                    onChange={(event) =>
+                      updateConfig({ tripDate: event.target.value })
+                    }
+                    className="w-full bg-transparent text-sm font-semibold text-stone-900 outline-none"
+                  />
+                  <span className="mt-0.5 block text-[11px] capitalize text-stone-500">
+                    {formatTripDate(config.tripDate)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => setTimeField("start")}
