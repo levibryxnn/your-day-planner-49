@@ -11,6 +11,7 @@ export function UserPlacesView() {
     addUserDraftPlace,
     removeUserDraftPlace,
     toggleDraftPriority,
+    generateItinerary,
     goToStep,
   } = useTripStore();
 
@@ -115,7 +116,10 @@ export function UserPlacesView() {
 
       <div className="mx-auto w-full max-w-sm space-y-2.5 pt-6">
         <button
-          onClick={() => goToStep("generating")}
+          onClick={() => {
+            generateItinerary();
+            goToStep("generating");
+          }}
           className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 py-4 text-sm font-semibold tracking-tight text-white shadow-md transition-all hover:bg-stone-800 active:scale-[0.98]"
         >
           <span>Organizar meu dia com estes lugares</span>
@@ -123,7 +127,10 @@ export function UserPlacesView() {
         </button>
 
         <button
-          onClick={() => goToStep("generating")}
+          onClick={() => {
+            generateItinerary([]);
+            goToStep("generating");
+          }}
           className="w-full py-2 text-xs font-semibold text-stone-500 transition-colors hover:text-stone-900"
         >
           Deixar o Rota escolher tudo
