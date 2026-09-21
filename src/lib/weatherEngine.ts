@@ -5,9 +5,55 @@ import {
   WeatherSummary,
 } from "./types";
 
+const TRAVEL_BUFFER_MINUTES = 25;
+
 function hourFromTime(time: string) {
   const [hours = 0] = time.split(":").map(Number);
   return hours;
+}
+
+function timeToMinutes(time: string) {
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(total: number) {
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
+}
+
+function durationToMinutes(duration: string) {
+  const hourMatch = duration.match(/(\d+)h/);
+  const minuteMatch = duration.match(/(\d+)min/);
+  const compactMinutes = duration.match(/h(\d{1,2})/);
+
+  const hours = hourMatch ? Number(hourMatch[1]) : 0;
+  const minutes = minuteMatch
+    ? Number(minuteMatch[1])
+    : compactMinutes
+      ? Number(compactMinutes[1])
+      : 0;
+
+  return Math.max(30, hours * 60 + minutes);
+}
+
+function rescheduleStops(stops: TripStop[]) {
+  if (stops.length === 0) return stops;
+
+  let cursor = timeToMinutes(stops[0]?.scheduledTime ?? "09:00");
+
+  return stops.map((stop) => {
+    const scheduledTime = minutesToTime(cursor);
+    const nextStop = {
+      ...stop,
+      scheduledTime,
+      arrivalTime: scheduledTime,
+    };
+
+    cursor += durationToMinutes(stop.duration) + TRAVEL_BUFFER_MINUTES;
+    return nextStop;
+  });
 }
 
 export function getWeatherSlotForTime(
@@ -213,8 +259,10 @@ export function optimizeStopsForWeather(
     swaps += 1;
   }
 
+  const rescheduled = rescheduleStops(reordered);
+
   return {
-    stops: annotateStopsWithWeather(reordered, forecast),
+    stops: annotateStopsWithWeather(rescheduled, forecast),
     swaps,
   };
 }
