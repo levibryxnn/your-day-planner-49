@@ -1,4 +1,5 @@
 import { BASE_SUGGESTED_STOPS } from "./mockData";
+import { calculatePlacePrice } from "./pricingEngine";
 import {
   AddedPlaceDraft,
   PriorityLevel,
@@ -7,7 +8,6 @@ import {
   UserTripConfig,
 } from "./types";
 
-const BASELINE_GROUP_WEIGHT = 2.5;
 const TRAVEL_BUFFER_MINUTES = 25;
 
 function timeToMinutes(time: string) {
@@ -31,52 +31,43 @@ function durationToMinutes(duration: string) {
   const minutes = minuteMatch
     ? Number(minuteMatch[1])
     : compactMinutes
-    ? Number(compactMinutes[1])
-    : 0;
+      ? Number(compactMinutes[1])
+      : 0;
 
   return Math.max(30, hours * 60 + minutes);
 }
 
-function scaleCost(baseCost: number, config: UserTripConfig) {
-  if (baseCost <= 0) return 0;
-  const groupWeight = config.adults + config.children * 0.5;
-  return Math.round((baseCost * groupWeight) / BASELINE_GROUP_WEIGHT);
-}
+function priceStop(stop: TripStop, config: UserTripConfig): TripStop {
+  const result = calculatePlacePrice(stop.cost, stop.pricing, config);
 
-function scoreStop(stop: TripStop, interests: string[]) {
-  if (!interests.length) return 1;
-
-  const haystack = (stop.name + " " + stop.category).toLowerCase();
-  const interestKeywords: Record<string, string[]> = {
-    Natureza: ["natureza", "parque", "jardim", "ar livre"],
-    "Comer bem": ["gastronomia", "almoço", "café", "mercado", "restaurante"],
-    Cultura: ["cultura", "museu", "arte", "pinacoteca"],
-    Crianças: ["natureza", "parque", "passeio"],
-    Compras: ["mercado", "paulista"],
-    História: ["história", "museu", "centro"],
-    "Experiências locais": ["mercado", "paulista", "beco"],
-    Fotografia: ["foto", "arte urbana", "paulista", "parque"],
+  return {
+    ...stop,
+    baseCost: stop.baseCost ?? stop.cost,
+    cost: result.total,
+    costBreakdown: result.breakdown,
+    costSummary: result.summary,
   };
-
-  return interests.reduce((score, interest) => {
-    const keywords = interestKeywords[interest] || [interest.toLowerCase()];
-    return score + (keywords.some((keyword) => haystack.includes(keyword)) ? 3 : 0);
-  }, 1);
 }
 
 function placeToStop(
   place: AddedPlaceDraft,
   config: UserTripConfig,
-  priority: PriorityLevel
+  priority: PriorityLevel,
 ): TripStop {
+  const pricingResult = calculatePlacePrice(place.cost, place.pricing, config);
+
   return {
     id: "user-" + place.id,
     name: place.name,
     category: place.category,
     scheduledTime: config.startTime,
     duration: place.duration,
-    cost: scaleCost(place.cost, config),
+    cost: pricingResult.total,
+    baseCost: place.cost,
     costType: place.costType,
+    pricing: place.pricing,
+    costBreakdown: pricingResult.breakdown,
+    costSummary: pricingResult.summary,
     image: place.image,
     selectedByUser: true,
     priority,
@@ -93,14 +84,19 @@ function placeToStop(
 
 function buildTransportExpenses(
   config: UserTripConfig,
-  stopCount: number
+  stopCount: number,
 ): TripExpense[] {
   if (config.transportMode === "walking") {
     return [];
   }
 
   if (config.transportMode === "public_transit") {
-    const estimate = Math.round(config.adults * 12 + config.children * 6);
+    const childFareTotal = config.childAges.reduce(
+      (total, age) => total + (age <= 5 ? 0 : 6),
+      0,
+    );
+    const estimate = Math.round(config.adults * 12 + childFareTotal);
+
     return [
       {
         id: "transport-public",
@@ -125,7 +121,7 @@ function buildTransportExpenses(
 
 function scheduleStops(
   candidates: TripStop[],
-  config: UserTripConfig
+  config: UserTripConfig,
 ): TripStop[] {
   const start = timeToMinutes(config.startTime);
   const end = timeToMinutes(config.endTime);
@@ -154,25 +150,30 @@ function scheduleStops(
 
 export function generateMockItinerary(
   config: UserTripConfig,
-  userPlaces: AddedPlaceDraft[]
+  userPlaces: AddedPlaceDraft[],
 ) {
   const userStops = userPlaces.map((place) =>
-    placeToStop(place, config, place.priority)
+    placeToStop(place, config, place.priority),
   );
 
   const userNames = new Set(userStops.map((stop) => stop.name.toLowerCase()));
 
-  const suggestions = BASE_SUGGESTED_STOPS
-    .filter((stop) => !userNames.has(stop.name.toLowerCase()))
-    .map((stop) => ({
-      ...stop,
-      cost: scaleCost(stop.cost, config),
-      selectedByUser: false,
-      priority: "suggested" as const,
-    }))
+  const suggestions = BASE_SUGGESTED_STOPS.filter(
+    (stop) => !userNames.has(stop.name.toLowerCase()),
+  )
+    .map((stop) =>
+      priceStop(
+        {
+          ...stop,
+          selectedByUser: false,
+          priority: "suggested" as const,
+        },
+        config,
+      ),
+    )
     .sort(
       (a, b) =>
-        scoreStop(b, config.interests) - scoreStop(a, config.interests)
+        scoreStop(b, config.interests) - scoreStop(a, config.interests),
     );
 
   const required = userStops.filter((stop) => stop.priority === "required");
@@ -190,7 +191,7 @@ export function generateMockItinerary(
 
   const expenseTotal = expenses.reduce(
     (sum, expense) => sum + expense.estimatedCost,
-    0
+    0,
   );
 
   let planned = stops.reduce((sum, stop) => sum + stop.cost, 0) + expenseTotal;
@@ -211,4 +212,28 @@ export function generateMockItinerary(
   }
 
   return { stops, expenses };
+}
+
+function scoreStop(stop: TripStop, interests: string[]) {
+  if (!interests.length) return 1;
+
+  const haystack = (stop.name + " " + stop.category).toLowerCase();
+  const interestKeywords: Record<string, string[]> = {
+    Natureza: ["natureza", "parque", "jardim", "ar livre"],
+    "Comer bem": ["gastronomia", "almoço", "café", "mercado", "restaurante"],
+    Cultura: ["cultura", "museu", "arte", "pinacoteca"],
+    Crianças: ["natureza", "parque", "passeio"],
+    Compras: ["mercado", "paulista"],
+    História: ["história", "museu", "centro"],
+    "Experiências locais": ["mercado", "paulista", "beco"],
+    Fotografia: ["foto", "arte urbana", "paulista", "parque"],
+  };
+
+  return interests.reduce((score, interest) => {
+    const keywords = interestKeywords[interest] || [interest.toLowerCase()];
+    return (
+      score +
+      (keywords.some((keyword) => haystack.includes(keyword)) ? 3 : 0)
+    );
+  }, 1);
 }

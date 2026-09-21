@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { AVAILABLE_MOCK_PLACES } from "../../lib/mockData";
 import { AddedPlaceDraft, PriorityLevel } from "../../lib/types";
 import { useTripStore } from "../../lib/tripStore";
+import { calculatePlacePrice, getUnitPriceLabel } from "../../lib/pricingEngine";
 import { X, Search, Plus, Check, Clock } from "lucide-react";
 
 interface AddStopModalProps {
@@ -111,7 +112,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                         {place.category}
                       </span>
                       <span className="flex-shrink-0 text-xs font-semibold text-stone-900">
-                        {place.costType === "free" ? "Grátis" : "~R$" + place.cost}
+                        {getUnitPriceLabel(place.cost, place.pricing, place.costType)}
                       </span>
                     </div>
                     <h3 className="truncate text-sm font-semibold text-stone-900">
@@ -150,10 +151,21 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                   <h3 className="truncate text-sm font-semibold text-stone-900">
                     {selectedPlace.name}
                   </h3>
-                  <p className="text-xs text-stone-500">
-                    {selectedPlace.costType === "free"
-                      ? "Atividade gratuita"
-                      : "Previsão de R$" + selectedPlace.cost}
+                  <p className="text-xs font-semibold text-emerald-900">
+                    {
+                      calculatePlacePrice(
+                        selectedPlace.cost,
+                        selectedPlace.pricing,
+                        config,
+                      ).summary
+                    }
+                  </p>
+                  <p className="mt-0.5 text-[10.5px] text-stone-500">
+                    {getUnitPriceLabel(
+                      selectedPlace.cost,
+                      selectedPlace.pricing,
+                      selectedPlace.costType,
+                    )}
                   </p>
                 </div>
                 <button

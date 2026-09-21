@@ -152,8 +152,8 @@ export function TourModeView() {
                   {currentStop.costType === "free"
                     ? "Grátis"
                     : currentStop.costType === "estimated"
-                    ? "~R$" + currentStop.cost
-                    : "R$" + currentStop.cost}
+                      ? "~R$" + currentStop.cost + " grupo"
+                      : "R$" + currentStop.cost + " grupo"}
                 </span>
               </div>
             </div>
@@ -236,7 +236,7 @@ export function TourModeView() {
                     )}
                   </div>
                   <span className="ml-2 flex-shrink-0 font-medium text-stone-600">
-                    {stop.costType === "free" ? "Grátis" : "~R$" + stop.cost}
+                    {stop.costType === "free" ? "Grátis" : "~R$" + stop.cost + " grupo"}
                   </span>
                 </div>
               ))}

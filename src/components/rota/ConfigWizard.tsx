@@ -77,6 +77,26 @@ export function ConfigWizard() {
     });
   };
 
+  const updateChildrenCount = (nextCount: number) => {
+    const children = Math.max(0, Math.min(6, nextCount));
+    const nextAges = [...config.childAges];
+
+    while (nextAges.length < children) {
+      nextAges.push(5);
+    }
+
+    updateConfig({
+      children,
+      childAges: nextAges.slice(0, children),
+    });
+  };
+
+  const updateChildAge = (index: number, age: number) => {
+    const nextAges = [...config.childAges];
+    nextAges[index] = age;
+    updateConfig({ childAges: nextAges });
+  };
+
   if (step === "config_group") {
     return (
       <div className="flex min-h-[calc(100vh-60px)] flex-col justify-between px-6 pb-8 pt-6 animate-in fade-in duration-300">
@@ -142,7 +162,7 @@ export function ConfigWizard() {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => updateConfig({ children: Math.max(0, config.children - 1) })}
+                  onClick={() => updateChildrenCount(config.children - 1)}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-stone-50 font-bold text-stone-700 transition-all hover:bg-stone-100"
                   aria-label="Diminuir crianças"
                 >
@@ -153,7 +173,7 @@ export function ConfigWizard() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => updateConfig({ children: config.children + 1 })}
+                  onClick={() => updateChildrenCount(config.children + 1)}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200 bg-stone-50 font-bold text-stone-700 transition-all hover:bg-stone-100"
                   aria-label="Aumentar crianças"
                 >
@@ -161,6 +181,52 @@ export function ConfigWizard() {
                 </button>
               </div>
             </div>
+
+            {config.children > 0 && (
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+                <div className="mb-3">
+                  <span className="block text-xs font-bold text-emerald-950">
+                    Idade das crianças
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-relaxed text-stone-600">
+                    Usamos a idade para calcular gratuidades, meia-entrada e valores infantis.
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {config.childAges.map((age, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-white px-3 py-2.5"
+                    >
+                      <label
+                        htmlFor={"child-age-" + index}
+                        className="text-xs font-semibold text-stone-800"
+                      >
+                        Criança {index + 1}
+                      </label>
+                      <select
+                        id={"child-age-" + index}
+                        value={age}
+                        onChange={(event) =>
+                          updateChildAge(index, Number(event.target.value))
+                        }
+                        className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-900 outline-none focus:border-emerald-700"
+                      >
+                        {Array.from({ length: 12 }, (_, childAge) => (
+                          <option key={childAge} value={childAge}>
+                            {childAge === 0
+                              ? "Menos de 1 ano"
+                              : childAge +
+                                (childAge === 1 ? " ano" : " anos")}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
