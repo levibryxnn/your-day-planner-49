@@ -37,8 +37,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
   const handleConfirm = () => {
     if (!selectedPlace) return;
     onAddStop(selectedPlace, priorityChoice);
-    setSelectedPlace(null);
-    setSearchTerm("");
+    handleClose();
   };
 
   return (
