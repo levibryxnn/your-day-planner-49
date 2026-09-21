@@ -23,6 +23,7 @@ export interface TripStop {
   scheduledTime: string;
   duration: string;
   cost: number;
+  baseCost?: number;
   costType: CostType;
   pricing?: PlacePricing;
   costBreakdown?: string[];
