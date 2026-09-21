@@ -197,7 +197,7 @@ export function generateMockItinerary(
 
   if (planned > config.budget) {
     const removable = [...stops]
-      .filter((stop) => stop.priority === "suggested" && stop.cost > 0)
+      .filter((stop) => stop.priority !== "required" && stop.cost > 0)
       .sort((a, b) => b.cost - a.cost);
 
     for (const stop of removable) {
