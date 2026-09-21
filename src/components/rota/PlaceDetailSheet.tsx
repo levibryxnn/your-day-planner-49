@@ -33,12 +33,12 @@ export function PlaceDetailSheet({
 
   const priceLabel =
     stop.costType === "free"
-      ? "Grátis"
+      ? "Grátis para o grupo"
       : stop.costType === "estimated"
-      ? "~R$" + stop.cost
-      : stop.costType === "unavailable"
-      ? "Preço indisponível"
-      : "R$" + stop.cost;
+        ? "~R$" + stop.cost + " para o grupo"
+        : stop.costType === "unavailable"
+          ? "Preço indisponível"
+          : "R$" + stop.cost + " para o grupo";
 
   return (
     <div
@@ -116,11 +116,39 @@ export function PlaceDetailSheet({
                 $
               </div>
               <div>
-                <span className="block text-[11px] text-stone-500">Preço</span>
-                <span className="text-xs font-semibold text-stone-900">{priceLabel}</span>
+                <span className="block text-[11px] text-stone-500">
+                  Total do grupo
+                </span>
+                <span className="text-xs font-semibold text-stone-900">
+                  {priceLabel}
+                </span>
               </div>
             </div>
           </div>
+
+          {stop.costBreakdown && stop.costBreakdown.length > 0 && (
+            <div className="rounded-2xl border border-stone-200 bg-white p-3.5">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-stone-500">
+                Como chegamos a esse valor
+              </span>
+              <div className="mt-2 space-y-1.5">
+                {stop.costBreakdown.map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-2 text-xs leading-relaxed text-stone-700"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-700" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              {stop.pricing?.note && (
+                <p className="mt-2 border-t border-stone-100 pt-2 text-[10.5px] leading-relaxed text-stone-500">
+                  {stop.pricing.note}
+                </p>
+              )}
+            </div>
+          )}
 
           <p className="text-sm font-normal leading-relaxed text-stone-600">
             {stop.description}
