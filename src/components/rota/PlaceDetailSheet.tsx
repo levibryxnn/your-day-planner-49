@@ -91,7 +91,7 @@ export function PlaceDetailSheet({
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-1 text-xs font-medium text-stone-500">
                 <MapPin className="h-3.5 w-3.5 text-emerald-800" />
-                {stop.neighborhood || config.destination}
+                {stop.neighborhood || config.destination.name}
               </span>
               <span className="text-stone-300">•</span>
               <span className="font-mono text-xs font-medium text-stone-500">
