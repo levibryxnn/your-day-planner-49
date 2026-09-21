@@ -38,8 +38,17 @@ export function HomeView() {
               <MapPin className="h-4 w-4 text-emerald-800" />
               <input
                 type="text"
-                value={config.destination}
-                onChange={(e) => updateConfig({ destination: e.target.value })}
+                value={config.destination.name}
+                onChange={(e) =>
+                  updateConfig({
+                    destination: {
+                      ...config.destination,
+                      id: "draft-destination",
+                      name: e.target.value,
+                      source: { provider: "mock" },
+                    },
+                  })
+                }
                 className="w-full bg-transparent text-base font-semibold text-stone-900 outline-none placeholder:text-stone-300"
                 placeholder="Ex: São Paulo"
                 required
