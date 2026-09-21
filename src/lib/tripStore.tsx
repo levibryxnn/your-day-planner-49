@@ -226,7 +226,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       duration: target.duration,
       image: target.image,
       priority: nextPriority === "required" ? "required" : "preferred",
-      neighborhood: target.neighborhood ?? config.destination,
+      neighborhood: target.neighborhood ?? config.destination.name,
       description: target.description,
     };
 
