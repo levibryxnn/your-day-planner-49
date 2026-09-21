@@ -191,7 +191,7 @@ export function optimizeStopsForWeather(
   stops: TripStop[],
   forecast: WeatherSlot[],
 ) {
-  let reordered = [...stops];
+  const reordered = [...stops];
   let swaps = 0;
 
   for (let index = 0; index < reordered.length; index += 1) {
