@@ -195,6 +195,15 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
     category: "Artes Visuais",
     cost: 40,
     costType: "confirmed",
+    pricing: {
+      mode: "per_person",
+      adultPrice: 40,
+      childBands: [
+        { minAge: 0, maxAge: 5, price: 0, label: "Gratuidade infantil" },
+        { minAge: 6, maxAge: 11, price: 20, label: "Ingresso infantil" },
+      ],
+      note: "Valores simulados por pessoa nesta versão.",
+    },
     duration: "1h30",
     image: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80",
     priority: "preferred",
