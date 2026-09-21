@@ -56,7 +56,7 @@ export function HeaderNav({
         {!isHome && (
           <div className="flex max-w-[130px] items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-950">
             <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-emerald-800" />
-            <span className="truncate">{config.destination || "Seu destino"}</span>
+            <span className="truncate">{config.destination.name || "Seu destino"}</span>
           </div>
         )}
 
