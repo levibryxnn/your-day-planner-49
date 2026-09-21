@@ -7,11 +7,6 @@ import {
 
 const TRAVEL_BUFFER_MINUTES = 25;
 
-function hourFromTime(time: string) {
-  const [hours = 0] = time.split(":").map(Number);
-  return hours;
-}
-
 function timeToMinutes(time: string) {
   const [hours = 0, minutes = 0] = time.split(":").map(Number);
   return hours * 60 + minutes;
@@ -60,14 +55,16 @@ export function getWeatherSlotForTime(
   time: string,
   forecast: WeatherSlot[],
 ): WeatherSlot | undefined {
-  const targetHour = hourFromTime(time);
+  const targetMinutes = timeToMinutes(time);
 
   return forecast.reduce<WeatherSlot | undefined>((closest, slot) => {
     if (!closest) return slot;
 
-    const currentDistance = Math.abs(hourFromTime(slot.time) - targetHour);
+    const currentDistance = Math.abs(
+      timeToMinutes(slot.time) - targetMinutes,
+    );
     const closestDistance = Math.abs(
-      hourFromTime(closest.time) - targetHour,
+      timeToMinutes(closest.time) - targetMinutes,
     );
 
     return currentDistance < closestDistance ? slot : closest;
