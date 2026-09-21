@@ -11,7 +11,7 @@ const BASELINE_GROUP_WEIGHT = 2.5;
 const TRAVEL_BUFFER_MINUTES = 25;
 
 function timeToMinutes(time: string) {
-  const [hours, minutes] = time.split(":").map(Number);
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
   return hours * 60 + minutes;
 }
 
