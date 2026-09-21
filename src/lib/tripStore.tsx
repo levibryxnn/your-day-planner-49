@@ -241,96 +241,62 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const openAddStop = () => setIsAddStopOpen(true);
   const closeAddStop = () => setIsAddStopOpen(false);
 
-  const createStopFromPlace = (
-    place: AddedPlaceDraft,
-    priority: PriorityLevel
-  ): TripStop => ({
-    id: "stop-" + Date.now(),
-    name: place.name,
-    category: place.category,
-    scheduledTime: config.startTime,
-    duration: place.duration,
-    cost: place.cost,
-    costType: place.costType,
-    image: place.image,
-    selectedByUser: true,
-    priority,
-    whyInRoute:
-      priority === "required"
-        ? "Você escolheu este lugar como parada obrigatória. O restante do roteiro será ajustado ao redor dele."
-        : "Você adicionou este lugar e ele foi encaixado onde havia espaço no dia.",
-    description: place.description,
-    rating: 4.8,
-    reviewCount: 340,
-    neighborhood: place.neighborhood,
-  });
-
   const handleAddStopToItinerary = (
     place: AddedPlaceDraft,
     priority: PriorityLevel
   ) => {
     setIsAddStopOpen(false);
+
+    const placeWithPriority: AddedPlaceDraft = {
+      ...place,
+      priority: priority === "required" ? "required" : "preferred",
+    };
+    const nextUserPlaces = [
+      ...userDraftPlaces.filter((item) => item.id !== place.id),
+      placeWithPriority,
+    ];
+
     const potentialNewTotal = totalPlanned + place.cost;
 
     if (potentialNewTotal > totalBudget && priority === "required") {
       setConflict({
-        place,
+        place: placeWithPriority,
         overflowAmount: potentialNewTotal - totalBudget,
         newTotal: potentialNewTotal,
       });
       return;
     }
 
-    const newStop = createStopFromPlace(place, priority);
-
-    setStops((prev) => {
-      const copy = [...prev];
-      const insertionIndex = Math.max(1, copy.length - 1);
-      copy.splice(insertionIndex, 0, newStop);
-      return copy;
-    });
-
+    const nextPlan = generateMockItinerary(config, nextUserPlaces);
+    setUserDraftPlaces(nextUserPlaces);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
     setLastFeedbackMessage(
-      '"' + place.name + '" foi adicionado. O restante do dia foi preservado.'
+      '"' + place.name + '" foi incluído e o restante do dia foi reorganizado.'
     );
   };
 
   const resolveKeepAndAdjust = () => {
     if (!conflict) return;
-    const { place } = conflict;
 
-    setStops((prev) => {
-      const candidates = prev
-        .filter((stop) => stop.priority === "suggested" && stop.cost > 0)
-        .sort((a, b) => b.cost - a.cost);
+    const nextUserPlaces = [
+      ...userDraftPlaces.filter((item) => item.id !== conflict.place.id),
+      { ...conflict.place, priority: "required" as const },
+    ];
+    const nextPlan = generateMockItinerary(config, nextUserPlaces);
 
-      const stopToAdjust = candidates[0];
-      const adjusted = stopToAdjust
-        ? prev.map((stop) =>
-            stop.id === stopToAdjust.id
-              ? {
-                  ...stop,
-                  name: stop.name + " — opção gratuita",
-                  cost: 0,
-                  costType: "free" as const,
-                  whyInRoute:
-                    "Ajustado para uma alternativa gratuita a fim de preservar sua escolha prioritária.",
-                }
-              : stop
-          )
-        : prev;
-
-      const newStop = createStopFromPlace(place, "required");
-      const copy = [...adjusted];
-      copy.splice(Math.max(1, copy.length - 1), 0, newStop);
-      return copy;
-    });
-
+    setUserDraftPlaces(nextUserPlaces);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(
       'Mantivemos "' +
-        place.name +
-        '" e ajustamos uma parada secundária para proteger seu orçamento.'
+        conflict.place.name +
+        '" e reorganizamos primeiro as paradas flexíveis.'
     );
   };
 
@@ -341,23 +307,29 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
 
   const resolveIncreaseBudget = () => {
     if (!conflict) return;
-    const { place, newTotal } = conflict;
 
-    setConfig((prev) => ({ ...prev, budget: newTotal }));
-    const newStop = createStopFromPlace(place, "required");
+    const nextConfig: UserTripConfig = {
+      ...config,
+      budget: conflict.newTotal,
+    };
+    const nextUserPlaces = [
+      ...userDraftPlaces.filter((item) => item.id !== conflict.place.id),
+      { ...conflict.place, priority: "required" as const },
+    ];
+    const nextPlan = generateMockItinerary(nextConfig, nextUserPlaces);
 
-    setStops((prev) => {
-      const copy = [...prev];
-      copy.splice(Math.max(1, copy.length - 1), 0, newStop);
-      return copy;
-    });
-
+    setConfig(nextConfig);
+    setUserDraftPlaces(nextUserPlaces);
+    setStops(nextPlan.stops);
+    setExpenses(nextPlan.expenses);
+    setTourStopIndex(0);
+    setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(
       'Orçamento atualizado para R$' +
-        newTotal +
+        conflict.newTotal +
         ' e "' +
-        place.name +
+        conflict.place.name +
         '" foi mantido.'
     );
   };
