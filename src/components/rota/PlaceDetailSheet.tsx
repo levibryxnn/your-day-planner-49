@@ -1,6 +1,7 @@
 import React from "react";
 import { TripStop } from "../../lib/types";
 import { useTripStore } from "../../lib/tripStore";
+import { confidenceLabel, providerLabel } from "../../lib/confidence";
 import {
   X,
   Clock,
@@ -184,6 +185,21 @@ export function PlaceDetailSheet({
           <p className="text-sm font-normal leading-relaxed text-stone-600">
             {stop.description}
           </p>
+
+          {(stop.dataConfidence || stop.source) && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3 text-[10.5px] text-stone-500">
+              <span className="font-semibold text-stone-600">Dados do local:</span>
+              {stop.source && (
+                <span>{providerLabel(stop.source.provider)}</span>
+              )}
+              {stop.dataConfidence && (
+                <>
+                  <span>•</span>
+                  <span>{confidenceLabel(stop.dataConfidence)}</span>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="space-y-1.5 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-950">
