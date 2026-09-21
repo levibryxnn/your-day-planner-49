@@ -9,6 +9,7 @@ export type ProviderName =
   | "mock"
   | "google_places"
   | "google_routes"
+  | "google_weather"
   | "weatherapi"
   | "tomorrow_io"
   | "rota_verified";
