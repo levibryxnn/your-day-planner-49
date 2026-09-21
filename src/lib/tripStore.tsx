@@ -179,39 +179,80 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const closeStopDetail = () => setSelectedStop(null);
 
   const toggleStopPriority = (stopId: string) => {
+    const target = stops.find((stop) => stop.id === stopId);
+    if (!target) return;
+
+    const nextPriority: PriorityLevel =
+      target.priority === "required" ? "preferred" : "required";
+
+    const draftFromStop: AddedPlaceDraft = {
+      id: target.id.startsWith("user-")
+        ? target.id.replace(/^user-/, "")
+        : "saved-" + target.id,
+      name: target.name,
+      category: target.category,
+      cost: target.cost,
+      costType: target.costType,
+      duration: target.duration,
+      image: target.image,
+      priority: nextPriority === "required" ? "required" : "preferred",
+      neighborhood: target.neighborhood ?? config.destination,
+      description: target.description,
+    };
+
+    setUserDraftPlaces((prev) => {
+      const matchingIndex = prev.findIndex(
+        (place) =>
+          place.id === draftFromStop.id ||
+          place.name.toLowerCase() === target.name.toLowerCase()
+      );
+
+      if (matchingIndex === -1) {
+        return [...prev, draftFromStop];
+      }
+
+      return prev.map((place, index) =>
+        index === matchingIndex
+          ? { ...place, priority: draftFromStop.priority }
+          : place
+      );
+    });
+
     setStops((prev) =>
-      prev.map((stop) => {
-        if (stop.id !== stopId) return stop;
-
-        const nextPriority =
-          stop.priority === "required" ? "suggested" : "required";
-
-        return {
-          ...stop,
-          priority: nextPriority,
-          selectedByUser: true,
-          whyInRoute:
-            nextPriority === "required"
-              ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
-              : "Sugestão ajustada de acordo com as preferências do seu grupo.",
-        };
-      })
+      prev.map((stop) =>
+        stop.id === stopId
+          ? {
+              ...stop,
+              priority: nextPriority,
+              selectedByUser: true,
+              whyInRoute:
+                nextPriority === "required"
+                  ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
+                  : "Você quer este lugar no roteiro, mas permite ajustes se tempo ou orçamento exigirem.",
+            }
+          : stop
+      )
     );
 
-    if (selectedStop?.id === stopId) {
-      setSelectedStop((prev) =>
-        prev
-          ? {
-              ...prev,
-              priority:
-                prev.priority === "required" ? "suggested" : "required",
-              selectedByUser: true,
-            }
-          : null
-      );
-    }
+    setSelectedStop((prev) =>
+      prev?.id === stopId
+        ? {
+            ...prev,
+            priority: nextPriority,
+            selectedByUser: true,
+            whyInRoute:
+              nextPriority === "required"
+                ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
+                : "Você quer este lugar no roteiro, mas permite ajustes se tempo ou orçamento exigirem.",
+          }
+        : prev
+    );
 
-    setLastFeedbackMessage("Prioridade atualizada.");
+    setLastFeedbackMessage(
+      nextPriority === "required"
+        ? "Esta parada agora é prioridade."
+        : "Esta parada ficou flexível, mas continua sendo uma escolha sua."
+    );
   };
 
   const swapStopAlternative = (stopId: string) => {
@@ -256,18 +297,18 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       placeWithPriority,
     ];
 
-    const potentialNewTotal = totalPlanned + place.cost;
+    const nextPlan = generateMockItinerary(config, nextUserPlaces);
+    const nextTotal = calculateTotalPlanned(nextPlan.stops, nextPlan.expenses);
 
-    if (potentialNewTotal > totalBudget && priority === "required") {
+    if (nextTotal > totalBudget && priority === "required") {
       setConflict({
         place: placeWithPriority,
-        overflowAmount: potentialNewTotal - totalBudget,
-        newTotal: potentialNewTotal,
+        overflowAmount: nextTotal - totalBudget,
+        newTotal: nextTotal,
       });
       return;
     }
 
-    const nextPlan = generateMockItinerary(config, nextUserPlaces);
     setUserDraftPlaces(nextUserPlaces);
     setStops(nextPlan.stops);
     setExpenses(nextPlan.expenses);
