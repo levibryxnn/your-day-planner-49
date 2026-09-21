@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AVAILABLE_MOCK_PLACES } from "../../lib/mockData";
 import { AddedPlaceDraft, PriorityLevel } from "../../lib/types";
-import { X, Search, Plus, Check, Clock } from "lucide-react";
+import { X, Search, Plus, Check, Clock } from "lucide-react";\nimport { useTripStore } from "../../lib/tripStore";
 
 interface AddStopModalProps {
   isOpen: boolean;
@@ -45,7 +45,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
               Adicionar parada ao roteiro
             </h2>
             <p className="text-xs text-stone-500">
-              Selecione uma atração ou restaurante em São Paulo
+              {`Busque um lugar em ${config.destination || "seu destino"}`}
             </p>
           </div>
           <button
@@ -75,7 +75,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
           {!selectedPlace ? (
             <div className="space-y-2">
               <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider block">
-                Lugares sugeridos em São Paulo
+                Exemplos simulados para esta versão
               </span>
               {filteredPlaces.map((place) => (
                 <div
