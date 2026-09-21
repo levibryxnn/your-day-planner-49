@@ -10,6 +10,7 @@ interface AddStopModalProps {
 }
 
 export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) {
+  const { config } = useTripStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlace, setSelectedPlace] = useState<AddedPlaceDraft | null>(null);
   const [priorityChoice, setPriorityChoice] = useState<PriorityLevel>("required");
