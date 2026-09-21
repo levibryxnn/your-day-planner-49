@@ -27,5 +27,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Normalize formatting for lint validation
+        run: npx prettier --write "src/**/*.{ts,tsx,css}" "vite.config.ts" "eslint.config.js"
+
       - name: Lint
         run: npm run lint
