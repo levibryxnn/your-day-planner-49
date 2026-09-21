@@ -42,6 +42,7 @@ function priceStop(stop: TripStop, config: UserTripConfig): TripStop {
 
   return {
     ...stop,
+    baseCost: stop.baseCost ?? stop.cost,
     cost: result.total,
     costBreakdown: result.breakdown,
     costSummary: result.summary,
@@ -62,6 +63,7 @@ function placeToStop(
     scheduledTime: config.startTime,
     duration: place.duration,
     cost: pricingResult.total,
+    baseCost: place.cost,
     costType: place.costType,
     pricing: place.pricing,
     costBreakdown: pricingResult.breakdown,
