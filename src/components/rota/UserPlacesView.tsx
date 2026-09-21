@@ -118,7 +118,7 @@ export function UserPlacesView() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-stone-300 bg-white/70 px-4 py-3 text-xs font-semibold text-stone-700 transition-all hover:border-emerald-800/40 hover:bg-white active:scale-[0.99]"
           >
             <Plus className="h-4 w-4" />
-            <span>Adicionar lugar em {config.destination || "seu destino"}</span>
+            <span>Adicionar lugar em {config.destination.name || "seu destino"}</span>
           </button>
         </div>
       </div>

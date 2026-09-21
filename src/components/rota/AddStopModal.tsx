@@ -60,7 +60,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
               Adicionar parada
             </h2>
             <p className="text-xs text-stone-500">
-              Buscar lugar em {config.destination || "seu destino"}
+              Buscar lugar em {config.destination.name || "seu destino"}
             </p>
           </div>
           <button
