@@ -15,37 +15,36 @@ export function HeaderNav({
   showBack = true,
   showReset = true,
 }: HeaderNavProps) {
-  const { goBack, resetTrip, step } = useTripStore();
-
+  const { goBack, resetTrip, step, config } = useTripStore();
   const isHome = step === "home";
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-5 py-3.5 bg-[#FAFAF8]/95 backdrop-blur-md border-b border-stone-200/70 transition-all">
-      <div className="flex items-center gap-2.5">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stone-200/70 bg-[#F9F7F2]/95 px-5 py-3.5 backdrop-blur-md transition-all">
+      <div className="flex min-w-0 items-center gap-2.5">
         {!isHome && showBack ? (
           <button
             onClick={goBack}
-            className="flex items-center justify-center w-9 h-9 -ml-1 text-stone-700 hover:text-stone-950 hover:bg-stone-200/50 active:scale-95 rounded-full transition-all"
+            className="-ml-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-stone-700 transition-all hover:bg-stone-200/50 hover:text-stone-950 active:scale-95"
             aria-label="Voltar"
           >
-            <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+            <ArrowLeft className="h-5 w-5 stroke-[2.2]" />
           </button>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="font-serif tracking-tight text-xl font-bold text-stone-900 flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-stone-900 inline-block"></span>
+            <span className="flex items-center gap-1.5 font-serif text-xl font-bold tracking-tight text-stone-900">
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-900" />
               Rota
             </span>
           </div>
         )}
 
         {title && (
-          <div className="flex flex-col">
-            <h1 className="text-sm font-semibold text-stone-900 tracking-tight leading-none">
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold leading-none tracking-tight text-stone-900">
               {title}
             </h1>
             {subtitle && (
-              <span className="text-[11px] text-stone-500 font-medium leading-tight mt-0.5">
+              <span className="mt-0.5 block truncate text-[11px] font-medium leading-tight text-stone-500">
                 {subtitle}
               </span>
             )}
@@ -53,22 +52,22 @@ export function HeaderNav({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-shrink-0 items-center gap-2">
         {!isHome && (
-          <div className="flex items-center gap-1.5 text-xs text-stone-600 bg-stone-100/80 px-2.5 py-1 rounded-full border border-stone-200/60 font-medium">
-            <MapPin className="w-3.5 h-3.5 text-stone-500" />
-            <span>São Paulo</span>
+          <div className="flex max-w-[130px] items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50/70 px-2.5 py-1 text-xs font-medium text-emerald-950">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-emerald-800" />
+            <span className="truncate">{config.destination || "Seu destino"}</span>
           </div>
         )}
 
         {!isHome && showReset && (
           <button
             onClick={resetTrip}
-            className="flex items-center justify-center w-8 h-8 text-stone-500 hover:text-stone-900 hover:bg-stone-200/50 rounded-full transition-all"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-stone-500 transition-all hover:bg-stone-200/50 hover:text-stone-900"
             title="Recomeçar roteiro"
             aria-label="Recomeçar"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="h-4 w-4" />
           </button>
         )}
       </div>
