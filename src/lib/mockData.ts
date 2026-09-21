@@ -370,6 +370,7 @@ export const GENERATION_STEPS = [
   "Encontrando lugares que combinam com vocês.",
   "Encaixando o que você escolheu.",
   "Equilibrando passeio e orçamento.",
+  "Conferindo o clima previsto para cada horário.",
   "Organizando os horários.",
   "Seu dia está pronto.",
 ];
