@@ -5,8 +5,8 @@ import { TimelineStop } from "./TimelineStop";
 import { Plus, Play, Calendar, CheckCircle2 } from "lucide-react";
 
 function minutesBetween(start: string, end: string) {
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
+  const [startHour = 0, startMinute = 0] = start.split(":").map(Number);
+  const [endHour = 0, endMinute = 0] = end.split(":").map(Number);
   return Math.max(0, endHour * 60 + endMinute - (startHour * 60 + startMinute));
 }
 
