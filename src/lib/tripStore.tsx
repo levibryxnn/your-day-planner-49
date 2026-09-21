@@ -6,8 +6,11 @@ import {
   TripExpense,
   TripStop,
   UserTripConfig,
+  WeatherSlot,
+  WeatherSummary,
 } from "./types";
-import { INITIAL_CONFIG } from "./mockData";
+import { INITIAL_CONFIG, MOCK_HOURLY_WEATHER } from "./mockData";
+import { optimizeStopsForWeather, summarizeWeatherImpact } from "./weatherEngine";
 import { generateMockItinerary } from "./itineraryEngine";
 import {
   calculateRemainingBudget,
@@ -40,6 +43,10 @@ interface TripContextType {
   totalBudget: number;
   totalPlanned: number;
   remainingBudget: number;
+
+  weatherForecast: WeatherSlot[];
+  weatherSummary: WeatherSummary;
+  optimizeForWeather: () => void;
 
   selectedStop: TripStop | null;
   openStopDetail: (stop: TripStop) => void;
@@ -175,6 +182,27 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     [totalBudget, stops, expenses]
   );
 
+  const weatherForecast = MOCK_HOURLY_WEATHER;
+  const weatherSummary = useMemo(
+    () => summarizeWeatherImpact(stops, weatherForecast),
+    [stops, weatherForecast]
+  );
+
+  const optimizeForWeather = () => {
+    const result = optimizeStopsForWeather(stops, weatherForecast);
+    setStops(result.stops);
+    setSelectedStop(null);
+
+    setLastFeedbackMessage(
+      result.swaps > 0
+        ? "Reorganizamos " +
+            result.swaps +
+            (result.swaps === 1 ? " parada" : " paradas") +
+            " para reduzir a exposição à chuva, sem remover suas prioridades."
+        : "Não encontramos uma troca de horário melhor. Mantivemos o roteiro e sinalizamos o risco climático."
+    );
+  };
+
   const openStopDetail = (stop: TripStop) => setSelectedStop(stop);
   const closeStopDetail = () => setSelectedStop(null);
 
@@ -194,6 +222,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       cost: target.baseCost ?? target.cost,
       costType: target.costType,
       pricing: target.pricing,
+      weatherSensitivity: target.weatherSensitivity,
       duration: target.duration,
       image: target.image,
       priority: nextPriority === "required" ? "required" : "preferred",
@@ -470,6 +499,9 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
         totalBudget,
         totalPlanned,
         remainingBudget,
+        weatherForecast,
+        weatherSummary,
+        optimizeForWeather,
         selectedStop,
         openStopDetail,
         closeStopDetail,
