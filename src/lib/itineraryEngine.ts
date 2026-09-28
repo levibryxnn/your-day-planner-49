@@ -66,8 +66,10 @@ function placeToStop(
     cost: pricingResult.total,
     baseCost: place.cost,
     costType: place.costType,
-    pricing: place.pricing,
-    weatherSensitivity: place.weatherSensitivity,
+    ...(place.pricing ? { pricing: place.pricing } : {}),
+    ...(place.weatherSensitivity
+      ? { weatherSensitivity: place.weatherSensitivity }
+      : {}),
     costBreakdown: pricingResult.breakdown,
     costSummary: pricingResult.summary,
     image: place.image,
