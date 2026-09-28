@@ -58,11 +58,15 @@ function placeToRotaPlace(
       latitude: MOCK_DESTINATION.latitude + index * 0.004,
       longitude: MOCK_DESTINATION.longitude - index * 0.003,
     },
-    neighborhood: {
-      value: place.neighborhood,
-      confidence: "estimated",
-      source: sourceNow(),
-    },
+    ...(place.neighborhood
+      ? {
+          neighborhood: {
+            value: place.neighborhood,
+            confidence: "estimated" as const,
+            source: sourceNow(),
+          },
+        }
+      : {}),
     businessStatus: {
       value: "operational",
       confidence: "estimated",
@@ -74,34 +78,37 @@ function placeToRotaPlace(
       source: sourceNow(),
       note: "Horário ainda não conectado a um provedor real.",
     },
-    rating:
-      place.rating !== undefined
-        ? {
+    ...(place.rating !== undefined
+      ? {
+          rating: {
             value: place.rating,
-            confidence: "estimated",
+            confidence: "estimated" as const,
             source: sourceNow(),
-          }
-        : undefined,
-    ratingCount:
-      place.reviewCount !== undefined
-        ? {
+          },
+        }
+      : {}),
+    ...(place.reviewCount !== undefined
+      ? {
+          ratingCount: {
             value: place.reviewCount,
-            confidence: "estimated",
+            confidence: "estimated" as const,
             source: sourceNow(),
-          }
-        : undefined,
-    priceRange:
-      place.cost > 0
-        ? {
+          },
+        }
+      : {}),
+    ...(place.cost > 0
+      ? {
+          priceRange: {
             value: {
               min: Math.round(place.cost * 0.8),
               max: Math.round(place.cost * 1.2),
               currency: "BRL",
             },
-            confidence: "estimated",
+            confidence: "estimated" as const,
             source: sourceNow(),
-          }
-        : undefined,
+          },
+        }
+      : {}),
     weatherSensitivity: place.weatherSensitivity ?? "mixed",
     photoUrls: [],
     source: sourceNow(),
