@@ -97,12 +97,26 @@ export function annotateStopsWithWeather(
     const slot = getWeatherSlotForTime(stop.scheduledTime, forecast);
     const weatherRisk = riskForStop(stop, slot);
 
-    if (!slot || weatherRisk === "none") {
+    if (!slot) {
+      const {
+        weatherProbability: _weatherProbability,
+        weatherNote: _weatherNote,
+        ...rest
+      } = stop;
+
       return {
-        ...stop,
+        ...rest,
         weatherRisk: "none",
-        weatherProbability: slot?.precipitationProbability,
-        weatherNote: undefined,
+      };
+    }
+
+    if (weatherRisk === "none") {
+      const { weatherNote: _weatherNote, ...rest } = stop;
+
+      return {
+        ...rest,
+        weatherRisk: "none",
+        weatherProbability: slot.precipitationProbability,
       };
     }
 
@@ -153,7 +167,7 @@ export function summarizeWeatherImpact(
       affectedStopIds: conflicts.map((stop) => stop.id),
       peakPrecipitationProbability:
         peak?.precipitationProbability ?? 0,
-      peakTime: peak?.time,
+      ...(peak?.time ? { peakTime: peak.time } : {}),
     };
   }
 
@@ -166,7 +180,7 @@ export function summarizeWeatherImpact(
       affectedStopIds: watches.map((stop) => stop.id),
       peakPrecipitationProbability:
         peak?.precipitationProbability ?? 0,
-      peakTime: peak?.time,
+      ...(peak?.time ? { peakTime: peak.time } : {}),
     };
   }
 
