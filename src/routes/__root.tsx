@@ -84,14 +84,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Seu dia organizado por orçamento, tempo e preferências." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      
+      { name: "theme-color", content: "#F9F7F2" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
