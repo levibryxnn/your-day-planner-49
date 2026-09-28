@@ -1,34 +1,36 @@
 name: Rota CI
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - chatgpt/rota-refinement-v2
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: bun install --frozen-lockfile
 
-      - name: Build
-        run: npm run build
+      - name: Typecheck
+        run: bun run typecheck
 
-      - name: Normalize formatting for lint validation
-        run: npx prettier --write "src/**/*.{ts,tsx,css}" "vite.config.ts" "eslint.config.js"
+      - name: Format check
+        run: bun run format:check
 
       - name: Lint
-        run: npm run lint
+        run: bun run lint
+
+      - name: Build
+        run: bun run build
