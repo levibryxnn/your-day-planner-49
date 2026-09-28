@@ -21,6 +21,8 @@ export function providerLabel(provider: ProviderName) {
       return "Google Places";
     case "google_routes":
       return "Google Routes";
+    case "google_weather":
+      return "Google Weather";
     case "weatherapi":
       return "WeatherAPI";
     case "tomorrow_io":
