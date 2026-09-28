@@ -197,7 +197,7 @@ export function summarizeWeatherImpact(
     affectedStopIds: [],
     peakPrecipitationProbability:
       peak?.precipitationProbability ?? 0,
-    peakTime: peak?.time,
+    ...(peak?.time ? { peakTime: peak.time } : {}),
   };
 }
 
