@@ -41,7 +41,8 @@ export function ConflictResolver() {
               Essa escolha ultrapassa seu limite em {"R$" + overflowAmount}.
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-stone-500">
-              Seu teto é {"R$" + totalBudget}. Mantendo “{place.name}”, a previsão fica em {"R$" + newTotal}.
+              Seu teto é {"R$" + totalBudget}. Mantendo “{place.name}”, a previsão fica em{" "}
+              {"R$" + newTotal}.
             </p>
           </div>
         </div>
@@ -59,7 +60,8 @@ export function ConflictResolver() {
                 Manter e reduzir o restante
               </span>
               <span className="text-[11px] leading-tight text-stone-500">
-                Preservamos sua prioridade e reduzimos primeiro as paradas flexíveis. Se ainda não couber, a margem continuará visível.
+                Preservamos sua prioridade e reduzimos primeiro as paradas flexíveis. Se ainda não
+                couber, a margem continuará visível.
               </span>
             </div>
           </button>

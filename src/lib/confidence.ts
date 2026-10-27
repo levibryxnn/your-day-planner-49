@@ -17,6 +17,14 @@ export function confidenceLabel(level: ConfidenceLevel) {
 
 export function providerLabel(provider: ProviderName) {
   switch (provider) {
+    case "open_meteo":
+      return "Open-Meteo";
+    case "nominatim":
+      return "OpenStreetMap / Nominatim";
+    case "photon":
+      return "OpenStreetMap / Photon";
+    case "osrm":
+      return "OSRM";
     case "google_places":
       return "Google Places";
     case "google_routes":

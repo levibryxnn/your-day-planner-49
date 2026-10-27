@@ -1,9 +1,4 @@
-import {
-  TripStop,
-  WeatherRisk,
-  WeatherSlot,
-  WeatherSummary,
-} from "./types";
+import { TripStop, WeatherRisk, WeatherSlot, WeatherSummary } from "./types";
 
 const TRAVEL_BUFFER_MINUTES = 25;
 
@@ -60,12 +55,8 @@ export function getWeatherSlotForTime(
   return forecast.reduce<WeatherSlot | undefined>((closest, slot) => {
     if (!closest) return slot;
 
-    const currentDistance = Math.abs(
-      timeToMinutes(slot.time) - targetMinutes,
-    );
-    const closestDistance = Math.abs(
-      timeToMinutes(closest.time) - targetMinutes,
-    );
+    const currentDistance = Math.abs(timeToMinutes(slot.time) - targetMinutes);
+    const closestDistance = Math.abs(timeToMinutes(closest.time) - targetMinutes);
 
     return currentDistance < closestDistance ? slot : closest;
   }, undefined);
@@ -89,20 +80,13 @@ function riskForStop(stop: TripStop, slot?: WeatherSlot): WeatherRisk {
   return "none";
 }
 
-export function annotateStopsWithWeather(
-  stops: TripStop[],
-  forecast: WeatherSlot[],
-): TripStop[] {
+export function annotateStopsWithWeather(stops: TripStop[], forecast: WeatherSlot[]): TripStop[] {
   return stops.map((stop) => {
     const slot = getWeatherSlotForTime(stop.scheduledTime, forecast);
     const weatherRisk = riskForStop(stop, slot);
 
     if (!slot) {
-      const {
-        weatherProbability: _weatherProbability,
-        weatherNote: _weatherNote,
-        ...rest
-      } = stop;
+      const { weatherProbability: _weatherProbability, weatherNote: _weatherNote, ...rest } = stop;
 
       return {
         ...rest,
@@ -121,38 +105,25 @@ export function annotateStopsWithWeather(
     }
 
     const label =
-      weatherRisk === "conflict"
-        ? "Chuva provável neste horário"
-        : "Vale acompanhar a previsão";
+      weatherRisk === "conflict" ? "Chuva provável neste horário" : "Vale acompanhar a previsão";
 
     return {
       ...stop,
       weatherRisk,
       weatherProbability: slot.precipitationProbability,
-      weatherNote:
-        label +
-        " • " +
-        slot.precipitationProbability +
-        "% de precipitação",
+      weatherNote: label + " • " + slot.precipitationProbability + "% de precipitação",
     };
   });
 }
 
-export function summarizeWeatherImpact(
-  stops: TripStop[],
-  forecast: WeatherSlot[],
-): WeatherSummary {
+export function summarizeWeatherImpact(stops: TripStop[], forecast: WeatherSlot[]): WeatherSummary {
   const annotated = annotateStopsWithWeather(stops, forecast);
-  const conflicts = annotated.filter(
-    (stop) => stop.weatherRisk === "conflict",
-  );
+  const conflicts = annotated.filter((stop) => stop.weatherRisk === "conflict");
   const watches = annotated.filter((stop) => stop.weatherRisk === "watch");
 
   const peak = forecast.reduce<WeatherSlot | undefined>((highest, slot) => {
     if (!highest) return slot;
-    return slot.precipitationProbability > highest.precipitationProbability
-      ? slot
-      : highest;
+    return slot.precipitationProbability > highest.precipitationProbability ? slot : highest;
   }, undefined);
 
   if (conflicts.length > 0) {
@@ -165,8 +136,7 @@ export function summarizeWeatherImpact(
       detail:
         "Há atividade ao ar livre próxima do período de maior chance de chuva. Podemos reorganizar os horários sem remover suas prioridades.",
       affectedStopIds: conflicts.map((stop) => stop.id),
-      peakPrecipitationProbability:
-        peak?.precipitationProbability ?? 0,
+      peakPrecipitationProbability: peak?.precipitationProbability ?? 0,
       ...(peak?.time ? { peakTime: peak.time } : {}),
     };
   }
@@ -178,8 +148,7 @@ export function summarizeWeatherImpact(
       detail:
         "Algumas atividades externas merecem atenção. O roteiro ainda é viável, mas a previsão pode mudar.",
       affectedStopIds: watches.map((stop) => stop.id),
-      peakPrecipitationProbability:
-        peak?.precipitationProbability ?? 0,
+      peakPrecipitationProbability: peak?.precipitationProbability ?? 0,
       ...(peak?.time ? { peakTime: peak.time } : {}),
     };
   }
@@ -195,16 +164,12 @@ export function summarizeWeatherImpact(
         ? "As atividades mais sensíveis ao clima não estão no período mais chuvoso."
         : "Nenhuma parada atual precisa ser alterada por causa da previsão simulada.",
     affectedStopIds: [],
-    peakPrecipitationProbability:
-      peak?.precipitationProbability ?? 0,
+    peakPrecipitationProbability: peak?.precipitationProbability ?? 0,
     ...(peak?.time ? { peakTime: peak.time } : {}),
   };
 }
 
-export function optimizeStopsForWeather(
-  stops: TripStop[],
-  forecast: WeatherSlot[],
-) {
+export function optimizeStopsForWeather(stops: TripStop[], forecast: WeatherSlot[]) {
   const reordered = [...stops];
   let swaps = 0;
 

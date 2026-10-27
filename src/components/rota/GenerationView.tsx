@@ -54,7 +54,8 @@ export function GenerationView() {
         </div>
 
         <p className="text-xs leading-relaxed text-stone-500">
-          Organizando {config.destination.name}, {config.startTime}–{config.endTime}, dentro do limite de {"R$" + config.budget}.
+          Organizando {config.destination.name}, {config.startTime}–{config.endTime}, dentro do
+          limite de {"R$" + config.budget}.
         </p>
       </div>
     </div>

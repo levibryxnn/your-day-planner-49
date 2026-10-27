@@ -10,33 +10,80 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiDestinationsRouteImport } from './routes/api/destinations'
+import { Route as ApiPlacesRouteImport } from './routes/api/places'
+import { Route as ApiRoutesRouteImport } from './routes/api/routes'
+import { Route as ApiWeatherRouteImport } from './routes/api/weather'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDestinationsRoute = ApiDestinationsRouteImport.update({
+  id: '/api/destinations',
+  path: '/api/destinations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPlacesRoute = ApiPlacesRouteImport.update({
+  id: '/api/places',
+  path: '/api/places',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRoutesRoute = ApiRoutesRouteImport.update({
+  id: '/api/routes',
+  path: '/api/routes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWeatherRoute = ApiWeatherRouteImport.update({
+  id: '/api/weather',
+  path: '/api/weather',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/destinations': typeof ApiDestinationsRoute
+  '/api/places': typeof ApiPlacesRoute
+  '/api/routes': typeof ApiRoutesRoute
+  '/api/weather': typeof ApiWeatherRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/destinations': typeof ApiDestinationsRoute
+  '/api/places': typeof ApiPlacesRoute
+  '/api/routes': typeof ApiRoutesRoute
+  '/api/weather': typeof ApiWeatherRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/destinations': typeof ApiDestinationsRoute
+  '/api/places': typeof ApiPlacesRoute
+  '/api/routes': typeof ApiRoutesRoute
+  '/api/weather': typeof ApiWeatherRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/api/destinations' | '/api/places' | '/api/routes' | '/api/weather'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/destinations' | '/api/places' | '/api/routes' | '/api/weather'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/destinations'
+    | '/api/places'
+    | '/api/routes'
+    | '/api/weather'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiDestinationsRoute: typeof ApiDestinationsRoute
+  ApiPlacesRoute: typeof ApiPlacesRoute
+  ApiRoutesRoute: typeof ApiRoutesRoute
+  ApiWeatherRoute: typeof ApiWeatherRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +95,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/destinations': {
+      id: '/api/destinations'
+      path: '/api/destinations'
+      fullPath: '/api/destinations'
+      preLoaderRoute: typeof ApiDestinationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/places': {
+      id: '/api/places'
+      path: '/api/places'
+      fullPath: '/api/places'
+      preLoaderRoute: typeof ApiPlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/routes': {
+      id: '/api/routes'
+      path: '/api/routes'
+      fullPath: '/api/routes'
+      preLoaderRoute: typeof ApiRoutesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/weather': {
+      id: '/api/weather'
+      path: '/api/weather'
+      fullPath: '/api/weather'
+      preLoaderRoute: typeof ApiWeatherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiDestinationsRoute: ApiDestinationsRoute,
+  ApiPlacesRoute: ApiPlacesRoute,
+  ApiRoutesRoute: ApiRoutesRoute,
+  ApiWeatherRoute: ApiWeatherRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

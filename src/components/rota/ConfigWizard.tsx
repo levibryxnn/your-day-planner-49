@@ -42,7 +42,7 @@ export function ConfigWizard() {
 
   const totalAvailableMinutes = useMemo(
     () => toMinutes(config.endTime) - toMinutes(config.startTime),
-    [config.startTime, config.endTime]
+    [config.startTime, config.endTime],
   );
   const invalidTimeRange = totalAvailableMinutes <= 0;
 
@@ -210,17 +210,14 @@ export function ConfigWizard() {
                       <select
                         id={"child-age-" + index}
                         value={age}
-                        onChange={(event) =>
-                          updateChildAge(index, Number(event.target.value))
-                        }
+                        onChange={(event) => updateChildAge(index, Number(event.target.value))}
                         className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-900 outline-none focus:border-emerald-700"
                       >
                         {Array.from({ length: 12 }, (_, childAge) => (
                           <option key={childAge} value={childAge}>
                             {childAge === 0
                               ? "Menos de 1 ano"
-                              : childAge +
-                                (childAge === 1 ? " ano" : " anos")}
+                              : childAge + (childAge === 1 ? " ano" : " anos")}
                           </option>
                         ))}
                       </select>
@@ -278,9 +275,7 @@ export function ConfigWizard() {
                     id="trip-date"
                     type="date"
                     value={config.tripDate}
-                    onChange={(event) =>
-                      updateConfig({ tripDate: event.target.value })
-                    }
+                    onChange={(event) => updateConfig({ tripDate: event.target.value })}
                     className="w-full bg-transparent text-sm font-semibold text-stone-900 outline-none"
                   />
                   <span className="mt-0.5 block text-[11px] capitalize text-stone-500">
@@ -332,7 +327,9 @@ export function ConfigWizard() {
                 <span className="block font-semibold">
                   {invalidTimeRange
                     ? "O horário de volta precisa ser depois da saída."
-                    : "Você terá " + formatDuration(totalAvailableMinutes) + " para aproveitar o dia."}
+                    : "Você terá " +
+                      formatDuration(totalAvailableMinutes) +
+                      " para aproveitar o dia."}
                 </span>
                 {!invalidTimeRange && (
                   <span className="mt-0.5 block opacity-75">

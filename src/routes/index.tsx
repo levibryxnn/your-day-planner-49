@@ -106,7 +106,7 @@ function RotaContent() {
   );
 }
 
-function RotaAppContainer() {
+export function RotaAppContainer() {
   return (
     <TripProvider>
       <RotaContent />

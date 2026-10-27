@@ -9,12 +9,7 @@ interface HeaderNavProps {
   showReset?: boolean;
 }
 
-export function HeaderNav({
-  title,
-  subtitle,
-  showBack = true,
-  showReset = true,
-}: HeaderNavProps) {
+export function HeaderNav({ title, subtitle, showBack = true, showReset = true }: HeaderNavProps) {
   const { goBack, resetTrip, step, config } = useTripStore();
   const isHome = step === "home";
 

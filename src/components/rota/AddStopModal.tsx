@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AVAILABLE_MOCK_PLACES } from "../../lib/mockData";
 import { AddedPlaceDraft, PriorityLevel } from "../../lib/types";
+import type { RotaPlace } from "../../lib/domain";
 import { useTripStore } from "../../lib/tripStore";
 import { calculatePlacePrice, getUnitPriceLabel } from "../../lib/pricingEngine";
+import { assetUrl, IS_STATIC_DEMO } from "../../lib/runtime";
 import { X, Search, Plus, Check, Clock } from "lucide-react";
 
 interface AddStopModalProps {
@@ -11,12 +13,81 @@ interface AddStopModalProps {
   onAddStop: (place: AddedPlaceDraft, priority: PriorityLevel) => void;
 }
 
+function livePlaceToDraft(place: RotaPlace): AddedPlaceDraft {
+  return {
+    id: place.id,
+    name: place.name,
+    category: place.category,
+    cost: 0,
+    costType: "unavailable",
+    weatherSensitivity: place.weatherSensitivity,
+    dataConfidence: "confirmed",
+    source: place.source,
+    duration: "1h",
+    image: assetUrl("favicon.svg"),
+    priority: "required",
+    neighborhood: place.neighborhood?.value ?? "",
+    description:
+      "Lugar encontrado em dados do OpenStreetMap. Preço, horário e avaliações ainda não foram confirmados.",
+  };
+}
+
 export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) {
   const { config } = useTripStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlace, setSelectedPlace] = useState<AddedPlaceDraft | null>(null);
-  const [priorityChoice, setPriorityChoice] =
-    useState<PriorityLevel>("required");
+  const [priorityChoice, setPriorityChoice] = useState<PriorityLevel>("required");
+  const [livePlaces, setLivePlaces] = useState<AddedPlaceDraft[]>([]);
+  const [liveSearchState, setLiveSearchState] = useState<"idle" | "loading" | "success" | "error">(
+    "idle",
+  );
+
+  useEffect(() => {
+    const query = searchTerm.trim();
+    if (IS_STATIC_DEMO || !isOpen || query.length < 2) {
+      setLivePlaces([]);
+      setLiveSearchState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setLiveSearchState("loading");
+
+      try {
+        const params = new URLSearchParams({
+          q: query,
+          destination: config.destination.name,
+          lat: String(config.destination.latitude),
+          lon: String(config.destination.longitude),
+        });
+        const response = await fetch("/api/places?" + params, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) throw new Error("Busca de lugares indisponível");
+
+        const result = (await response.json()) as {
+          ok?: boolean;
+          data?: RotaPlace[];
+        };
+
+        if (!result.ok || !result.data) throw new Error("Resposta inválida");
+
+        setLivePlaces(result.data.map(livePlaceToDraft));
+        setLiveSearchState("success");
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setLivePlaces([]);
+        setLiveSearchState("error");
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [config.destination, isOpen, searchTerm]);
 
   if (!isOpen) return null;
 
@@ -28,6 +99,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
       place.neighborhood.toLowerCase().includes(query)
     );
   });
+  const displayedPlaces = liveSearchState === "success" ? livePlaces : filteredPlaces;
 
   const handleClose = () => {
     setSelectedPlace(null);
@@ -56,9 +128,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
       >
         <div className="flex items-center justify-between border-b border-stone-100 p-4">
           <div>
-            <h2 className="font-serif text-base font-bold text-stone-900">
-              Adicionar parada
-            </h2>
+            <h2 className="font-serif text-base font-bold text-stone-900">Adicionar parada</h2>
             <p className="text-xs text-stone-500">
               Buscar lugar em {config.destination.name || "seu destino"}
             </p>
@@ -91,10 +161,12 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
           {!selectedPlace ? (
             <div className="space-y-2">
               <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-400">
-                Exemplos simulados para esta versão
+                {liveSearchState === "success"
+                  ? "Resultados OpenStreetMap"
+                  : "Exemplos simulados enquanto buscamos"}
               </span>
 
-              {filteredPlaces.map((place) => (
+              {displayedPlaces.map((place) => (
                 <button
                   key={place.id}
                   type="button"
@@ -115,9 +187,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                         {getUnitPriceLabel(place.cost, place.pricing, place.costType)}
                       </span>
                     </div>
-                    <h3 className="truncate text-sm font-semibold text-stone-900">
-                      {place.name}
-                    </h3>
+                    <h3 className="truncate text-sm font-semibold text-stone-900">{place.name}</h3>
                     <div className="mt-0.5 flex items-center gap-2 text-xs text-stone-500">
                       <span className="truncate">{place.neighborhood}</span>
                       <span>•</span>
@@ -133,9 +203,21 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                 </button>
               ))}
 
-              {filteredPlaces.length === 0 && (
+              {liveSearchState === "loading" && (
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 text-center text-xs text-emerald-900">
+                  Buscando lugares próximos…
+                </div>
+              )}
+
+              {liveSearchState === "error" && searchTerm.trim().length >= 2 && (
+                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-center text-xs text-amber-900">
+                  A busca ao vivo não respondeu. Os exemplos simulados continuam disponíveis.
+                </div>
+              )}
+
+              {liveSearchState === "success" && livePlaces.length === 0 && (
                 <div className="rounded-2xl border border-stone-200 bg-stone-50 p-5 text-center text-xs text-stone-500">
-                  Nenhum exemplo corresponde à busca.
+                  Nenhum lugar encontrado para esta busca.
                 </div>
               )}
             </div>
@@ -157,6 +239,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                         selectedPlace.cost,
                         selectedPlace.pricing,
                         config,
+                        selectedPlace.costType,
                       ).summary
                     }
                   </p>
@@ -182,7 +265,8 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                   Como você quer encaixar este lugar?
                 </label>
                 <p className="mb-3 text-xs leading-relaxed text-stone-500">
-                  Sua escolha define o que pode ou não ser substituído durante os ajustes do roteiro.
+                  Sua escolha define o que pode ou não ser substituído durante os ajustes do
+                  roteiro.
                 </p>
 
                 <div className="grid grid-cols-1 gap-2.5">
@@ -203,14 +287,10 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                           : "mt-0.5 h-5 w-5 rounded-full border border-stone-300"
                       }
                     >
-                      {priorityChoice === "required" && (
-                        <Check className="h-3 w-3 stroke-[3]" />
-                      )}
+                      {priorityChoice === "required" && <Check className="h-3 w-3 stroke-[3]" />}
                     </div>
                     <div>
-                      <span className="block text-xs font-bold text-stone-900">
-                        Quero muito ir
-                      </span>
+                      <span className="block text-xs font-bold text-stone-900">Quero muito ir</span>
                       <span className="text-xs leading-tight text-stone-500">
                         O Rota preserva esta parada e ajusta o restante primeiro.
                       </span>
@@ -234,9 +314,7 @@ export function AddStopModal({ isOpen, onClose, onAddStop }: AddStopModalProps) 
                           : "mt-0.5 h-5 w-5 rounded-full border border-stone-300"
                       }
                     >
-                      {priorityChoice === "preferred" && (
-                        <Check className="h-3 w-3 stroke-[3]" />
-                      )}
+                      {priorityChoice === "preferred" && <Check className="h-3 w-3 stroke-[3]" />}
                     </div>
                     <div>
                       <span className="block text-xs font-bold text-stone-900">

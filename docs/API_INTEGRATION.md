@@ -4,6 +4,22 @@
 
 Conectar dados reais mantendo o Rota independente de fornecedor e resiliente a falhas.
 
+## Primeira implementação open-data
+
+O primeiro vertical slice usa adaptadores server-side, sem chaves no navegador:
+
+- Nominatim para confirmar destinos e coordenadas. A busca deve ser explícita, com User-Agent identificável e baixa frequência; não usar autocomplete agressivo no endpoint público.
+- Photon para busca textual de lugares e categorias a partir de dados OpenStreetMap. Preço, avaliação, fotos, status operacional e horário permanecem desconhecidos quando a fonte não os fornece.
+- Open-Meteo para previsão horária. O resultado é atribuído à fonte e o fuso pode ser resolvido pelo parâmetro `timezone=auto`.
+- OSRM para matriz de carro e caminhada. A resposta não representa trânsito em tempo real; transporte público permanece no fallback até haver uma fonte GTFS/provedor apropriado.
+
+Os endpoints locais são `/api/destinations`, `/api/places`, `/api/weather` e `/api/routes`. Eles usam `safeProviderCall`, limitam entradas e preservam respostas de fallback sem apresentar dados desconhecidos como confirmados.
+
+O GitHub Pages publica uma variante estática do aplicativo para testes de interface. Nessa variante,
+as chamadas server-side são desativadas e o fluxo usa dados de demonstração; isso é uma limitação do
+GitHub Pages, que não executa as rotas API do TanStack Start. O build completo deve ser executado em
+um runtime server-side para habilitar os provedores open-data.
+
 ## Provedores previstos
 
 ### Places

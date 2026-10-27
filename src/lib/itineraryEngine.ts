@@ -1,13 +1,7 @@
 import { BASE_SUGGESTED_STOPS, MOCK_HOURLY_WEATHER } from "./mockData";
 import { annotateStopsWithWeather } from "./weatherEngine";
 import { calculatePlacePrice } from "./pricingEngine";
-import {
-  AddedPlaceDraft,
-  PriorityLevel,
-  TripExpense,
-  TripStop,
-  UserTripConfig,
-} from "./types";
+import { AddedPlaceDraft, PriorityLevel, TripExpense, TripStop, UserTripConfig } from "./types";
 
 const TRAVEL_BUFFER_MINUTES = 25;
 
@@ -39,7 +33,7 @@ function durationToMinutes(duration: string) {
 }
 
 function priceStop(stop: TripStop, config: UserTripConfig): TripStop {
-  const result = calculatePlacePrice(stop.cost, stop.pricing, config);
+  const result = calculatePlacePrice(stop.cost, stop.pricing, config, stop.costType);
 
   return {
     ...stop,
@@ -55,7 +49,7 @@ function placeToStop(
   config: UserTripConfig,
   priority: PriorityLevel,
 ): TripStop {
-  const pricingResult = calculatePlacePrice(place.cost, place.pricing, config);
+  const pricingResult = calculatePlacePrice(place.cost, place.pricing, config, place.costType);
 
   return {
     id: "user-" + place.id,
@@ -67,9 +61,7 @@ function placeToStop(
     baseCost: place.cost,
     costType: place.costType,
     ...(place.pricing ? { pricing: place.pricing } : {}),
-    ...(place.weatherSensitivity
-      ? { weatherSensitivity: place.weatherSensitivity }
-      : {}),
+    ...(place.weatherSensitivity ? { weatherSensitivity: place.weatherSensitivity } : {}),
     costBreakdown: pricingResult.breakdown,
     costSummary: pricingResult.summary,
     image: place.image,
@@ -88,19 +80,13 @@ function placeToStop(
   };
 }
 
-function buildTransportExpenses(
-  config: UserTripConfig,
-  stopCount: number,
-): TripExpense[] {
+function buildTransportExpenses(config: UserTripConfig, stopCount: number): TripExpense[] {
   if (config.transportMode === "walking") {
     return [];
   }
 
   if (config.transportMode === "public_transit") {
-    const childFareTotal = config.childAges.reduce(
-      (total, age) => total + (age <= 5 ? 0 : 6),
-      0,
-    );
+    const childFareTotal = config.childAges.reduce((total, age) => total + (age <= 5 ? 0 : 6), 0);
     const estimate = Math.round(config.adults * 12 + childFareTotal);
 
     return [
@@ -125,10 +111,7 @@ function buildTransportExpenses(
   ];
 }
 
-function scheduleStops(
-  candidates: TripStop[],
-  config: UserTripConfig,
-): TripStop[] {
+function scheduleStops(candidates: TripStop[], config: UserTripConfig): TripStop[] {
   const start = timeToMinutes(config.startTime);
   const end = timeToMinutes(config.endTime);
   let cursor = start;
@@ -154,19 +137,12 @@ function scheduleStops(
   return scheduled;
 }
 
-export function generateMockItinerary(
-  config: UserTripConfig,
-  userPlaces: AddedPlaceDraft[],
-) {
-  const userStops = userPlaces.map((place) =>
-    placeToStop(place, config, place.priority),
-  );
+export function generateMockItinerary(config: UserTripConfig, userPlaces: AddedPlaceDraft[]) {
+  const userStops = userPlaces.map((place) => placeToStop(place, config, place.priority));
 
   const userNames = new Set(userStops.map((stop) => stop.name.toLowerCase()));
 
-  const suggestions = BASE_SUGGESTED_STOPS.filter(
-    (stop) => !userNames.has(stop.name.toLowerCase()),
-  )
+  const suggestions = BASE_SUGGESTED_STOPS.filter((stop) => !userNames.has(stop.name.toLowerCase()))
     .map((stop) =>
       priceStop(
         {
@@ -177,28 +153,17 @@ export function generateMockItinerary(
         config,
       ),
     )
-    .sort(
-      (a, b) =>
-        scoreStop(b, config.interests) - scoreStop(a, config.interests),
-    );
+    .sort((a, b) => scoreStop(b, config.interests) - scoreStop(a, config.interests));
 
   const required = userStops.filter((stop) => stop.priority === "required");
   const preferred = userStops.filter((stop) => stop.priority === "preferred");
 
-  const combined = [
-    ...required,
-    ...suggestions.slice(0, 3),
-    ...preferred,
-    ...suggestions.slice(3),
-  ];
+  const combined = [...required, ...suggestions.slice(0, 3), ...preferred, ...suggestions.slice(3)];
 
   let stops = scheduleStops(combined, config);
   let expenses = buildTransportExpenses(config, stops.length);
 
-  const expenseTotal = expenses.reduce(
-    (sum, expense) => sum + expense.estimatedCost,
-    0,
-  );
+  const expenseTotal = expenses.reduce((sum, expense) => sum + expense.estimatedCost, 0);
 
   let planned = stops.reduce((sum, stop) => sum + stop.cost, 0) + expenseTotal;
 
@@ -239,9 +204,6 @@ function scoreStop(stop: TripStop, interests: string[]) {
 
   return interests.reduce((score, interest) => {
     const keywords = interestKeywords[interest] || [interest.toLowerCase()];
-    return (
-      score +
-      (keywords.some((keyword) => haystack.includes(keyword)) ? 3 : 0)
-    );
+    return score + (keywords.some((keyword) => haystack.includes(keyword)) ? 3 : 0);
   }, 1);
 }

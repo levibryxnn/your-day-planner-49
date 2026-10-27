@@ -4,12 +4,7 @@ import {
   MOCK_DESTINATION,
   MOCK_HOURLY_WEATHER,
 } from "../mockData";
-import type {
-  ProviderResult,
-  RotaPlace,
-  RotaRoute,
-  RotaWeatherForecast,
-} from "../domain";
+import type { ProviderResult, RotaPlace, RotaRoute, RotaWeatherForecast } from "../domain";
 import type {
   DestinationSearchInput,
   PlaceDetailsInput,
@@ -117,9 +112,7 @@ function placeToRotaPlace(
 
 export const mockPlacesProvider: PlacesProvider = {
   async searchDestinations(input: DestinationSearchInput) {
-    const matches = MOCK_DESTINATION.name
-      .toLowerCase()
-      .includes(input.query.trim().toLowerCase());
+    const matches = MOCK_DESTINATION.name.toLowerCase().includes(input.query.trim().toLowerCase());
 
     return success(matches ? [MOCK_DESTINATION] : []);
   },
@@ -132,8 +125,7 @@ export const mockPlacesProvider: PlacesProvider = {
       .filter((place) => {
         if (!query) return true;
         return (
-          place.name.toLowerCase().includes(query) ||
-          place.category.toLowerCase().includes(query)
+          place.name.toLowerCase().includes(query) || place.category.toLowerCase().includes(query)
         );
       })
       .slice(0, input.maxResults ?? 10)
@@ -176,9 +168,7 @@ function haversineMeters(
   const lat1 = toRadians(a.latitude);
   const lat2 = toRadians(b.latitude);
 
-  const value =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  const value = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
 
   return 2 * earthRadius * Math.asin(Math.sqrt(value));
 }
@@ -186,21 +176,14 @@ function haversineMeters(
 export const mockRoutesProvider: RoutesProvider = {
   async computeMatrix(input: RouteMatrixInput) {
     const speedMetersPerMinute =
-      input.travelMode === "WALK"
-        ? 80
-        : input.travelMode === "TRANSIT"
-          ? 300
-          : 450;
+      input.travelMode === "WALK" ? 80 : input.travelMode === "TRANSIT" ? 300 : 450;
 
     const routes: RotaRoute[] = [];
 
     input.origins.forEach((origin) => {
       input.destinations.forEach((destination) => {
         const distance = Math.round(haversineMeters(origin, destination));
-        const duration = Math.max(
-          1,
-          Math.round(distance / speedMetersPerMinute),
-        );
+        const duration = Math.max(1, Math.round(distance / speedMetersPerMinute));
 
         routes.push({
           originId: origin.id,

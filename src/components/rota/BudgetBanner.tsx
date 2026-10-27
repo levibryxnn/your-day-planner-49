@@ -7,26 +7,15 @@ interface BudgetBannerProps {
 }
 
 export function BudgetBanner({ compact = false }: BudgetBannerProps) {
-  const {
-    totalBudget,
-    totalPlanned,
-    remainingBudget,
-    updateConfig,
-    stops,
-    expenses,
-  } = useTripStore();
+  const { totalBudget, totalPlanned, remainingBudget, updateConfig, stops, expenses } =
+    useTripStore();
   const [isEditing, setIsEditing] = useState(false);
   const [tempBudget, setTempBudget] = useState(totalBudget);
 
   const percentUsed =
-    totalBudget > 0
-      ? Math.min(100, Math.round((totalPlanned / totalBudget) * 100))
-      : 0;
+    totalBudget > 0 ? Math.min(100, Math.round((totalPlanned / totalBudget) * 100)) : 0;
   const isOverBudget = remainingBudget < 0;
-  const expensesTotal = expenses.reduce(
-    (sum, expense) => sum + expense.estimatedCost,
-    0
-  );
+  const expensesTotal = expenses.reduce((sum, expense) => sum + expense.estimatedCost, 0);
 
   const handleOpenEdit = () => {
     setTempBudget(totalBudget);
@@ -43,9 +32,7 @@ export function BudgetBanner({ compact = false }: BudgetBannerProps) {
       <div className="flex items-center justify-between rounded-2xl border border-stone-200/80 bg-stone-50 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-stone-500">Orçamento</span>
-          <span className="text-sm font-semibold text-stone-900">
-            {"R$" + totalBudget}
-          </span>
+          <span className="text-sm font-semibold text-stone-900">{"R$" + totalBudget}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-stone-500">Margem</span>
@@ -56,9 +43,7 @@ export function BudgetBanner({ compact = false }: BudgetBannerProps) {
                 : "text-sm font-bold text-emerald-800"
             }
           >
-            {isOverBudget
-              ? "-R$" + Math.abs(remainingBudget)
-              : "R$" + remainingBudget + " livres"}
+            {isOverBudget ? "-R$" + Math.abs(remainingBudget) : "R$" + remainingBudget + " livres"}
           </span>
         </div>
       </div>

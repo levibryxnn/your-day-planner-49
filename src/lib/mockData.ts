@@ -133,13 +133,16 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
     cost: 0,
     costType: "free",
     weatherSensitivity: "outdoor",
-    image: "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
     source: { provider: "mock" },
-    whyInRoute: "Uma abertura leve para o dia, com espaço ao ar livre e sem consumir seu orçamento.",
-    description: "Parque urbano amplo, com áreas verdes, lago e espaços adequados para caminhar em família.",
+    whyInRoute:
+      "Uma abertura leve para o dia, com espaço ao ar livre e sem consumir seu orçamento.",
+    description:
+      "Parque urbano amplo, com áreas verdes, lago e espaços adequados para caminhar em família.",
     rating: 4.8,
     reviewCount: 42300,
     neighborhood: "Vila Mariana",
@@ -162,13 +165,15 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
       note: "Valores simulados por pessoa nesta versão.",
     },
     weatherSensitivity: "indoor",
-    image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
     source: { provider: "mock" },
     whyInRoute: "Combina cultura com deslocamento curto a partir do Ibirapuera.",
-    description: "Espaço dedicado à arte moderna e contemporânea, com jardim de esculturas e programação cultural.",
+    description:
+      "Espaço dedicado à arte moderna e contemporânea, com jardim de esculturas e programação cultural.",
     rating: 4.7,
     reviewCount: 9120,
     neighborhood: "Parque Ibirapuera",
@@ -182,13 +187,15 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
     cost: 85,
     costType: "estimated",
     weatherSensitivity: "indoor",
-    image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
     source: { provider: "mock" },
     whyInRoute: "Inclui uma pausa gastronômica com forte identidade local.",
-    description: "Mercado histórico com boxes de alimentos, arquitetura marcante e variedade gastronômica.",
+    description:
+      "Mercado histórico com boxes de alimentos, arquitetura marcante e variedade gastronômica.",
     rating: 4.5,
     reviewCount: 36000,
     neighborhood: "Centro Histórico",
@@ -202,13 +209,15 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
     cost: 0,
     costType: "free",
     weatherSensitivity: "mixed",
-    image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
     source: { provider: "mock" },
     whyInRoute: "Mistura passeio urbano, cultura e uma opção gratuita no mesmo trecho.",
-    description: "Trecho emblemático da cidade com arquitetura, espaços culturais e movimento urbano.",
+    description:
+      "Trecho emblemático da cidade com arquitetura, espaços culturais e movimento urbano.",
     rating: 4.8,
     reviewCount: 14200,
     neighborhood: "Bela Vista",
@@ -222,13 +231,15 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
     cost: 0,
     costType: "free",
     weatherSensitivity: "outdoor",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
     source: { provider: "mock" },
     whyInRoute: "Boa opção gratuita para quem gosta de fotografia e experiências urbanas.",
-    description: "Galeria de arte urbana a céu aberto com murais e ruas coloridas na Vila Madalena.",
+    description:
+      "Galeria de arte urbana a céu aberto com murais e ruas coloridas na Vila Madalena.",
     rating: 4.6,
     reviewCount: 21000,
     neighborhood: "Vila Madalena",
@@ -251,7 +262,8 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
       note: "Valores simulados por pessoa nesta versão.",
     },
     weatherSensitivity: "indoor",
-    image: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
@@ -271,7 +283,8 @@ export const BASE_SUGGESTED_STOPS: TripStop[] = [
     cost: 55,
     costType: "estimated",
     weatherSensitivity: "indoor",
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&auto=format&fit=crop&q=80",
     selectedByUser: false,
     priority: "suggested",
     dataConfidence: "estimated",
@@ -295,12 +308,14 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
     costType: "estimated",
     weatherSensitivity: "indoor",
     duration: "1h20",
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
     priority: "required",
     dataConfidence: "estimated",
     source: { provider: "mock" },
     neighborhood: "Vila Medeiros",
-    description: "Cozinha sertaneja clássica em ambiente familiar. Valor e horários são simulados nesta versão.",
+    description:
+      "Cozinha sertaneja clássica em ambiente familiar. Valor e horários são simulados nesta versão.",
   },
   {
     id: "place-masp",
@@ -319,7 +334,8 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
     },
     weatherSensitivity: "indoor",
     duration: "1h40",
-    image: "https://images.unsplash.com/photo-1582560475093-ba66accbc424?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1582560475093-ba66accbc424?w=800&auto=format&fit=crop&q=80",
     priority: "preferred",
     dataConfidence: "estimated",
     source: { provider: "mock" },
@@ -343,7 +359,8 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
       note: "Valores simulados por pessoa nesta versão.",
     },
     duration: "1h30",
-    image: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop&q=80",
     priority: "preferred",
     dataConfidence: "estimated",
     source: { provider: "mock" },
@@ -358,7 +375,8 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
     costType: "estimated",
     weatherSensitivity: "indoor",
     duration: "1h15",
-    image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&auto=format&fit=crop&q=80",
     priority: "preferred",
     dataConfidence: "estimated",
     source: { provider: "mock" },
@@ -373,7 +391,8 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
     costType: "free",
     weatherSensitivity: "outdoor",
     duration: "1h00",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
     priority: "preferred",
     dataConfidence: "estimated",
     source: { provider: "mock" },
@@ -388,7 +407,8 @@ export const AVAILABLE_MOCK_PLACES: AddedPlaceDraft[] = [
     costType: "estimated",
     weatherSensitivity: "mixed",
     duration: "1h15",
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80",
     priority: "required",
     dataConfidence: "estimated",
     source: { provider: "mock" },
@@ -420,9 +440,21 @@ export const GENERATION_STEPS = [
 export const INTENT_OPTIONS = [
   { id: "eat", label: "Quero comer", desc: "Encontrar uma parada gastronômica próxima" },
   { id: "rest", label: "Quero descansar", desc: "Pausa rápida em local calmo ou arborizado" },
-  { id: "free", label: "Quero algo gratuito", desc: "Substituir próxima atração por opção sem custo" },
+  {
+    id: "free",
+    label: "Quero algo gratuito",
+    desc: "Substituir próxima atração por opção sem custo",
+  },
   { id: "save", label: "Quero gastar menos", desc: "Ajustar o restante para economizar mais" },
   { id: "indoor", label: "Quero um lugar fechado", desc: "Opção protegida de sol forte ou chuva" },
-  { id: "add", label: "Quero adicionar um lugar", desc: "Incluir um novo ponto ao roteiro de hoje" },
-  { id: "change", label: "Quero mudar o passeio", desc: "Alternar o foco do dia mantendo o orçamento" },
+  {
+    id: "add",
+    label: "Quero adicionar um lugar",
+    desc: "Incluir um novo ponto ao roteiro de hoje",
+  },
+  {
+    id: "change",
+    label: "Quero mudar o passeio",
+    desc: "Alternar o foco do dia mantendo o orçamento",
+  },
 ];

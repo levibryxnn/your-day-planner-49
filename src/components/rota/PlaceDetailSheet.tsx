@@ -119,12 +119,8 @@ export function PlaceDetailSheet({
                 $
               </div>
               <div>
-                <span className="block text-[11px] text-stone-500">
-                  Total do grupo
-                </span>
-                <span className="text-xs font-semibold text-stone-900">
-                  {priceLabel}
-                </span>
+                <span className="block text-[11px] text-stone-500">Total do grupo</span>
+                <span className="text-xs font-semibold text-stone-900">{priceLabel}</span>
               </div>
             </div>
           </div>
@@ -182,16 +178,12 @@ export function PlaceDetailSheet({
             </div>
           )}
 
-          <p className="text-sm font-normal leading-relaxed text-stone-600">
-            {stop.description}
-          </p>
+          <p className="text-sm font-normal leading-relaxed text-stone-600">{stop.description}</p>
 
           {(stop.dataConfidence || stop.source) && (
             <div className="flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3 text-[10.5px] text-stone-500">
               <span className="font-semibold text-stone-600">Dados do local:</span>
-              {stop.source && (
-                <span>{providerLabel(stop.source.provider)}</span>
-              )}
+              {stop.source && <span>{providerLabel(stop.source.provider)}</span>}
               {stop.dataConfidence && (
                 <>
                   <span>•</span>

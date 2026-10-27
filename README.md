@@ -2,7 +2,7 @@
 
 Rota é um planejador turístico mobile-first orientado por **orçamento, tempo, preferências e contexto real**. O objetivo é transformar as restrições do usuário em um dia executável, com estimativas claras, prioridades preservadas e replanejamento quando o mundo real muda.
 
-> Status: protótipo funcional em evolução. Places, rotas e clima ainda usam dados simulados/adaptadores mock; a base do código já está preparada para provedores reais.
+> Status: protótipo funcional em evolução. A geração do roteiro ainda usa dados simulados, mas o primeiro vertical slice server-side já consulta destinos, lugares, clima e matriz de rotas por APIs open-data com fallback seguro.
 
 ## Princípios do produto
 
@@ -24,7 +24,9 @@ Rota é um planejador turístico mobile-first orientado por **orçamento, tempo,
 - resolução de conflitos de orçamento;
 - simulação de clima horário e reorganização por risco de chuva;
 - modelos normalizados e contratos para futuros provedores de Places, Routes e Weather;
+- endpoints server-side open-data para destinos, lugares, clima e matriz de rotas;
 - estados de confiança/origem dos dados e gateway de fallback.
+- preview estático navegável para testes no GitHub Pages, com o fluxo completo usando dados de demonstração.
 
 ## Stack
 
@@ -75,6 +77,23 @@ Validação completa:
 bun run typecheck
 bun run lint
 bun run build
+```
+
+### Preview navegável no GitHub
+
+O workflow `Deploy Rota preview` publica automaticamente uma versão navegável em:
+
+<https://levibryxnn.github.io/your-day-planner-49/>
+
+Esse preview usa o modo de demonstração do GitHub Pages: geração do roteiro, orçamento,
+prioridades, clima simulado e modo passeio continuam testáveis sem servidor. As rotas reais de
+destinos, lugares, clima e matriz OSRM exigem o build server-side do TanStack Start em um host com
+runtime, como Lovable ou Cloudflare.
+
+Para gerar o mesmo artefato localmente:
+
+```bash
+bun run build:pages
 ```
 
 A CI executa essas validações em pull requests para `main`.

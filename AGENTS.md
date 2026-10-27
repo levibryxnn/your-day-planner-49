@@ -1,8 +1,10 @@
 <!-- LOVABLE:BEGIN -->
+
 > [!IMPORTANT]
 > This project is connected to Lovable. Avoid rewriting published git history
 > (force push, rebase/amend/squash of commits already pushed). Commits on the
 > connected branch sync back to Lovable, so keep pushed branches buildable.
+
 <!-- LOVABLE:END -->
 
 # Rota agent rules

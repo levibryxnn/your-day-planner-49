@@ -9,35 +9,19 @@ interface TimelineStopProps {
   onSelect: (stop: TripStop) => void;
 }
 
-export function TimelineStop({
-  stop,
-  isLast,
-  onSelect,
-}: TimelineStopProps) {
+export function TimelineStop({ stop, isLast, onSelect }: TimelineStopProps) {
   const renderCost = () => {
     switch (stop.costType) {
       case "free":
         return <span className="font-semibold text-emerald-800">Grátis</span>;
       case "confirmed":
-        return (
-          <span className="font-semibold text-stone-900">
-            {"R$" + stop.cost + " grupo"}
-          </span>
-        );
+        return <span className="font-semibold text-stone-900">{"R$" + stop.cost + " grupo"}</span>;
       case "estimated":
-        return (
-          <span className="font-semibold text-stone-800">
-            {"~R$" + stop.cost + " grupo"}
-          </span>
-        );
+        return <span className="font-semibold text-stone-800">{"~R$" + stop.cost + " grupo"}</span>;
       case "unavailable":
         return <span className="font-normal text-stone-500">Preço indisponível</span>;
       default:
-        return (
-          <span className="font-semibold text-stone-900">
-            {"R$" + stop.cost + " grupo"}
-          </span>
-        );
+        return <span className="font-semibold text-stone-900">{"R$" + stop.cost + " grupo"}</span>;
     }
   };
 
@@ -48,9 +32,7 @@ export function TimelineStop({
           {stop.scheduledTime}
         </span>
 
-        {!isLast && (
-          <div className="mt-2 min-h-[70px] h-full w-[1.5px] bg-stone-200" />
-        )}
+        {!isLast && <div className="mt-2 min-h-[70px] h-full w-[1.5px] bg-stone-200" />}
       </div>
 
       <div

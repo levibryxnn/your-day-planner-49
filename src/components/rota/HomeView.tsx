@@ -1,14 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTripStore } from "../../lib/tripStore";
 import { ArrowRight, MapPin, ShieldCheck } from "lucide-react";
 import { BudgetInput } from "./BudgetInput";
+import type { DestinationRef } from "../../lib/domain";
+import { IS_STATIC_DEMO } from "../../lib/runtime";
 
 export function HomeView() {
   const { config, updateConfig, goToStep } = useTripStore();
+  const [isResolvingDestination, setIsResolvingDestination] = useState(false);
+  const [destinationError, setDestinationError] = useState<string | null>(null);
 
-  const handleStart = (e: React.FormEvent) => {
+  const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
-    goToStep("config_group");
+    const query = config.destination.name.trim();
+    if (query.length < 2) return;
+
+    setDestinationError(null);
+    setIsResolvingDestination(true);
+
+    if (IS_STATIC_DEMO) {
+      goToStep("config_group");
+      setIsResolvingDestination(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/destinations?q=" + encodeURIComponent(query));
+      const result = (await response.json()) as {
+        ok?: boolean;
+        data?: DestinationRef[];
+      };
+      const destination = result.data?.[0];
+
+      if (!response.ok || !result.ok || !destination) {
+        if (
+          config.destination.id === "mock-destination-sao-paulo" &&
+          query.toLowerCase() === "são paulo"
+        ) {
+          goToStep("config_group");
+          return;
+        }
+        throw new Error("Destino não encontrado");
+      }
+
+      updateConfig({ destination });
+      goToStep("config_group");
+    } catch {
+      if (
+        config.destination.id === "mock-destination-sao-paulo" &&
+        query.toLowerCase() === "são paulo"
+      ) {
+        goToStep("config_group");
+        return;
+      }
+      setDestinationError(
+        "Não conseguimos confirmar este destino agora. Tente novamente antes de planejar.",
+      );
+    } finally {
+      setIsResolvingDestination(false);
+    }
   };
 
   return (
@@ -25,7 +75,8 @@ export function HomeView() {
           </h1>
 
           <p className="max-w-[42ch] text-sm font-normal leading-relaxed text-stone-600">
-            Diga seu orçamento e seu tempo. O Rota organiza o dia sem fazer você ultrapassar seus limites.
+            Diga seu orçamento e seu tempo. O Rota organiza o dia sem fazer você ultrapassar seus
+            limites.
           </p>
         </div>
 
@@ -54,6 +105,9 @@ export function HomeView() {
                 required
               />
             </div>
+            {destinationError && (
+              <p className="mt-2 text-xs leading-relaxed text-amber-800">{destinationError}</p>
+            )}
           </div>
 
           <BudgetInput
@@ -66,9 +120,10 @@ export function HomeView() {
 
           <button
             type="submit"
+            disabled={isResolvingDestination}
             className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 py-4 text-base font-semibold tracking-tight text-white shadow-lg shadow-stone-950/10 transition-all hover:bg-stone-800 active:scale-[0.98]"
           >
-            <span>Planejar meu dia</span>
+            <span>{isResolvingDestination ? "Confirmando destino…" : "Planejar meu dia"}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
         </form>

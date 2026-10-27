@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { assetUrl } from "../lib/runtime";
 
 function NotFoundComponent() {
   return (
@@ -18,9 +19,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Esta página não existe ou foi movida.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">Esta página não existe ou foi movida.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -34,7 +33,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -78,10 +77,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Rota — seu dia dentro do orçamento" },
-      { name: "description", content: "Planeje um dia turístico de acordo com seu tempo, orçamento e preferências." },
+      {
+        name: "description",
+        content: "Planeje um dia turístico de acordo com seu tempo, orçamento e preferências.",
+      },
       { name: "author", content: "Rota" },
       { property: "og:title", content: "Rota" },
-      { property: "og:description", content: "Seu dia organizado por orçamento, tempo e preferências." },
+      {
+        property: "og:description",
+        content: "Seu dia organizado por orçamento, tempo e preferências.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#F9F7F2" },
@@ -91,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: assetUrl("favicon.svg"), type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,

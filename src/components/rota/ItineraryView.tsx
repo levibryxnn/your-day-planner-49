@@ -68,9 +68,7 @@ export function ItineraryView() {
 
       <div className="flex-1 px-5">
         <div className="mb-3 flex items-center justify-between pt-1">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">
-            Cronograma
-          </h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">Cronograma</h2>
           <button
             onClick={openAddStop}
             className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 transition-all hover:border-emerald-800/30 hover:text-emerald-950 active:scale-95"
@@ -102,7 +100,8 @@ export function ItineraryView() {
             <div>• {"R$" + totalPlanned} previstos</div>
             <div>• {"R$" + remainingBudget} de margem</div>
             <div className="col-span-2 font-medium text-stone-800">
-              • {userChosenCount} {userChosenCount === 1 ? "lugar escolhido" : "lugares escolhidos"} por você
+              • {userChosenCount} {userChosenCount === 1 ? "lugar escolhido" : "lugares escolhidos"}{" "}
+              por você
             </div>
           </div>
         </div>

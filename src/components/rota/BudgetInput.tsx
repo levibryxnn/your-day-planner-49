@@ -25,8 +25,7 @@ export function BudgetInput({
     }
   }, [value, isTyping]);
 
-  const clampValue = (nextValue: number) =>
-    Math.min(max, Math.max(min, nextValue));
+  const clampValue = (nextValue: number) => Math.min(max, Math.max(min, nextValue));
 
   const commitValue = (nextValue: number) => {
     const safeValue = clampValue(nextValue);
@@ -99,9 +98,7 @@ export function BudgetInput({
               aria-label="Orçamento máximo do dia"
             />
           </div>
-          <span className="mt-1 block text-[11px] text-stone-500">
-            Seu limite para o dia
-          </span>
+          <span className="mt-1 block text-[11px] text-stone-500">Seu limite para o dia</span>
         </div>
 
         <button
@@ -134,9 +131,7 @@ export function BudgetInput({
       </div>
 
       <div className="flex items-center justify-between gap-2 border-t border-stone-100 pt-3">
-        <span className="flex-shrink-0 text-[11px] font-medium text-stone-500">
-          Atalhos
-        </span>
+        <span className="flex-shrink-0 text-[11px] font-medium text-stone-500">Atalhos</span>
         <div className="flex items-center gap-1.5 overflow-x-auto">
           {presets.map((preset) => (
             <button

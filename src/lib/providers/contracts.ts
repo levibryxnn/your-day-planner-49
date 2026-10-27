@@ -43,27 +43,17 @@ export interface WeatherForecastInput {
 }
 
 export interface PlacesProvider {
-  searchDestinations(
-    input: DestinationSearchInput,
-  ): Promise<ProviderResult<DestinationRef[]>>;
+  searchDestinations(input: DestinationSearchInput): Promise<ProviderResult<DestinationRef[]>>;
 
-  searchPlaces(
-    input: PlaceSearchInput,
-  ): Promise<ProviderResult<RotaPlace[]>>;
+  searchPlaces(input: PlaceSearchInput): Promise<ProviderResult<RotaPlace[]>>;
 
-  getPlaceDetails(
-    input: PlaceDetailsInput,
-  ): Promise<ProviderResult<RotaPlace>>;
+  getPlaceDetails(input: PlaceDetailsInput): Promise<ProviderResult<RotaPlace>>;
 }
 
 export interface RoutesProvider {
-  computeMatrix(
-    input: RouteMatrixInput,
-  ): Promise<ProviderResult<RotaRoute[]>>;
+  computeMatrix(input: RouteMatrixInput): Promise<ProviderResult<RotaRoute[]>>;
 }
 
 export interface WeatherProvider {
-  getHourlyForecast(
-    input: WeatherForecastInput,
-  ): Promise<ProviderResult<RotaWeatherForecast>>;
+  getHourlyForecast(input: WeatherForecastInput): Promise<ProviderResult<RotaWeatherForecast>>;
 }

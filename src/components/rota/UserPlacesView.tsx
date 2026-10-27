@@ -36,7 +36,8 @@ export function UserPlacesView() {
             Tem algum lugar que você já quer incluir?
           </h2>
           <p className="mt-1.5 text-xs leading-relaxed text-stone-600">
-            Pode ser um restaurante que você conhece, uma atração recomendada ou um lugar que não quer deixar de visitar.
+            Pode ser um restaurante que você conhece, uma atração recomendada ou um lugar que não
+            quer deixar de visitar.
           </p>
         </div>
 
@@ -48,6 +49,7 @@ export function UserPlacesView() {
                 place.cost,
                 place.pricing,
                 config,
+                place.costType,
               );
               return (
                 <div

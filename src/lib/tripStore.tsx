@@ -9,13 +9,16 @@ import {
   WeatherSlot,
   WeatherSummary,
 } from "./types";
+import type { RotaWeatherForecast } from "./domain";
 import { INITIAL_CONFIG, MOCK_HOURLY_WEATHER } from "./mockData";
-import { optimizeStopsForWeather, summarizeWeatherImpact } from "./weatherEngine";
-import { generateMockItinerary } from "./itineraryEngine";
 import {
-  calculateRemainingBudget,
-  calculateTotalPlanned,
-} from "./budgetEngine";
+  annotateStopsWithWeather,
+  optimizeStopsForWeather,
+  summarizeWeatherImpact,
+} from "./weatherEngine";
+import { generateMockItinerary } from "./itineraryEngine";
+import { calculateRemainingBudget, calculateTotalPlanned } from "./budgetEngine";
+import { IS_STATIC_DEMO } from "./runtime";
 
 interface ConflictInfo {
   place: AddedPlaceDraft;
@@ -57,10 +60,7 @@ interface TripContextType {
   isAddStopOpen: boolean;
   openAddStop: () => void;
   closeAddStop: () => void;
-  handleAddStopToItinerary: (
-    place: AddedPlaceDraft,
-    priority: PriorityLevel
-  ) => void;
+  handleAddStopToItinerary: (place: AddedPlaceDraft, priority: PriorityLevel) => void;
 
   conflict: ConflictInfo | null;
   resolveKeepAndAdjust: () => void;
@@ -82,6 +82,36 @@ interface TripContextType {
 const TripContext = createContext<TripContextType | undefined>(undefined);
 const INITIAL_PLAN = generateMockItinerary(INITIAL_CONFIG, []);
 
+function liveForecastToWeatherSlots(forecast: RotaWeatherForecast): WeatherSlot[] {
+  return forecast.hours.flatMap((hour) => {
+    const temperatureC = hour.temperatureC.value;
+    const precipitationProbability = hour.precipitationProbability.value;
+    if (temperatureC === undefined || precipitationProbability === undefined) {
+      return [];
+    }
+
+    const description = hour.condition.value ?? "Condição não informada";
+    const normalized = description.toLowerCase();
+    const condition = normalized.includes("trovo")
+      ? "storm"
+      : normalized.includes("chuva")
+        ? "rain"
+        : normalized.includes("nubl")
+          ? "cloudy"
+          : "clear";
+
+    return [
+      {
+        time: hour.timeIso.slice(11, 16),
+        temperatureC,
+        precipitationProbability,
+        condition,
+        description,
+      } satisfies WeatherSlot,
+    ];
+  });
+}
+
 export function TripProvider({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState<StepState>("home");
   const [stepHistory, setStepHistory] = useState<StepState[]>(["home"]);
@@ -98,6 +128,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const [tourStopIndex, setTourStopIndex] = useState(0);
   const [isIntentModalOpen, setIsIntentModalOpen] = useState(false);
   const [lastFeedbackMessage, setLastFeedbackMessage] = useState<string | null>(null);
+  const [weatherForecast, setWeatherForecast] = useState<WeatherSlot[]>(MOCK_HOURLY_WEATHER);
 
   const goToStep = (nextStep: StepState) => {
     setStepHistory((prev) => [...prev, nextStep]);
@@ -127,6 +158,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setConflict(null);
     setTourStopIndex(0);
     setLastFeedbackMessage(null);
+    setWeatherForecast(MOCK_HOURLY_WEATHER);
     setStepHistory(["home"]);
     setStep("home");
   };
@@ -135,9 +167,39 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setConfig((prev) => ({ ...prev, ...patch }));
   };
 
+  const refreshLiveWeather = async (nextConfig: UserTripConfig) => {
+    if (IS_STATIC_DEMO) return;
+
+    try {
+      const params = new URLSearchParams({
+        lat: String(nextConfig.destination.latitude),
+        lon: String(nextConfig.destination.longitude),
+        date: nextConfig.tripDate,
+        timezone: nextConfig.destination.timeZone,
+        hours: "24",
+      });
+      const response = await fetch("/api/weather?" + params);
+      if (!response.ok) return;
+
+      const result = (await response.json()) as {
+        ok?: boolean;
+        data?: RotaWeatherForecast;
+      };
+      if (!result.ok || !result.data) return;
+
+      const nextForecast = liveForecastToWeatherSlots(result.data);
+      if (nextForecast.length === 0) return;
+
+      setWeatherForecast(nextForecast);
+      setStops((previousStops) => annotateStopsWithWeather(previousStops, nextForecast));
+    } catch {
+      // Keep the last safe forecast when the provider is unavailable.
+    }
+  };
+
   const addUserDraftPlace = (place: AddedPlaceDraft) => {
     setUserDraftPlaces((prev) =>
-      prev.some((item) => item.id === place.id) ? prev : [...prev, place]
+      prev.some((item) => item.id === place.id) ? prev : [...prev, place],
     );
   };
 
@@ -151,11 +213,10 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
         place.id === placeId
           ? {
               ...place,
-              priority:
-                place.priority === "required" ? "preferred" : "required",
+              priority: place.priority === "required" ? "preferred" : "required",
             }
-          : place
-      )
+          : place,
+      ),
     );
   };
 
@@ -170,22 +231,19 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(null);
+    void refreshLiveWeather(config);
   };
 
   const totalBudget = config.budget;
-  const totalPlanned = useMemo(
-    () => calculateTotalPlanned(stops, expenses),
-    [stops, expenses]
-  );
+  const totalPlanned = useMemo(() => calculateTotalPlanned(stops, expenses), [stops, expenses]);
   const remainingBudget = useMemo(
     () => calculateRemainingBudget(totalBudget, stops, expenses),
-    [totalBudget, stops, expenses]
+    [totalBudget, stops, expenses],
   );
 
-  const weatherForecast = MOCK_HOURLY_WEATHER;
   const weatherSummary = useMemo(
     () => summarizeWeatherImpact(stops, weatherForecast),
-    [stops, weatherForecast]
+    [stops, weatherForecast],
   );
 
   const optimizeForWeather = () => {
@@ -199,7 +257,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
             result.swaps +
             (result.swaps === 1 ? " parada" : " paradas") +
             " para reduzir a exposição à chuva, sem remover suas prioridades."
-        : "Não encontramos uma troca de horário melhor. Mantivemos o roteiro e sinalizamos o risco climático."
+        : "Não encontramos uma troca de horário melhor. Mantivemos o roteiro e sinalizamos o risco climático.",
     );
   };
 
@@ -210,24 +268,17 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     const target = stops.find((stop) => stop.id === stopId);
     if (!target) return;
 
-    const nextPriority: PriorityLevel =
-      target.priority === "required" ? "preferred" : "required";
+    const nextPriority: PriorityLevel = target.priority === "required" ? "preferred" : "required";
 
     const draftFromStop: AddedPlaceDraft = {
-      id: target.id.startsWith("user-")
-        ? target.id.replace(/^user-/, "")
-        : "saved-" + target.id,
+      id: target.id.startsWith("user-") ? target.id.replace(/^user-/, "") : "saved-" + target.id,
       name: target.name,
       category: target.category,
       cost: target.baseCost ?? target.cost,
       costType: target.costType,
       ...(target.pricing ? { pricing: target.pricing } : {}),
-      ...(target.weatherSensitivity
-        ? { weatherSensitivity: target.weatherSensitivity }
-        : {}),
-      ...(target.dataConfidence
-        ? { dataConfidence: target.dataConfidence }
-        : {}),
+      ...(target.weatherSensitivity ? { weatherSensitivity: target.weatherSensitivity } : {}),
+      ...(target.dataConfidence ? { dataConfidence: target.dataConfidence } : {}),
       ...(target.source ? { source: target.source } : {}),
       duration: target.duration,
       image: target.image,
@@ -239,8 +290,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setUserDraftPlaces((prev) => {
       const matchingIndex = prev.findIndex(
         (place) =>
-          place.id === draftFromStop.id ||
-          place.name.toLowerCase() === target.name.toLowerCase()
+          place.id === draftFromStop.id || place.name.toLowerCase() === target.name.toLowerCase(),
       );
 
       if (matchingIndex === -1) {
@@ -248,9 +298,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
       }
 
       return prev.map((place, index) =>
-        index === matchingIndex
-          ? { ...place, priority: draftFromStop.priority }
-          : place
+        index === matchingIndex ? { ...place, priority: draftFromStop.priority } : place,
       );
     });
 
@@ -266,8 +314,8 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
                   ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
                   : "Você quer este lugar no roteiro, mas permite ajustes se tempo ou orçamento exigirem.",
             }
-          : stop
-      )
+          : stop,
+      ),
     );
 
     setSelectedStop((prev) =>
@@ -281,13 +329,13 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
                 ? "Você marcou este local como prioridade. O roteiro deve preservar essa escolha."
                 : "Você quer este lugar no roteiro, mas permite ajustes se tempo ou orçamento exigirem.",
           }
-        : prev
+        : prev,
     );
 
     setLastFeedbackMessage(
       nextPriority === "required"
         ? "Esta parada agora é prioridade."
-        : "Esta parada ficou flexível, mas continua sendo uma escolha sua."
+        : "Esta parada ficou flexível, mas continua sendo uma escolha sua.",
     );
   };
 
@@ -301,14 +349,14 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
           name: stop.name.includes("MAM")
             ? "Jardim das Esculturas"
             : stop.name.includes("Café")
-            ? "Pausa em praça arborizada"
-            : stop.name,
+              ? "Pausa em praça arborizada"
+              : stop.name,
           cost: Math.max(0, stop.cost - 20),
           costType: stop.cost <= 20 ? "free" : stop.costType,
           whyInRoute:
             "Substituição simulada por uma alternativa mais econômica e compatível com o dia.",
         };
-      })
+      }),
     );
 
     setSelectedStop(null);
@@ -318,10 +366,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
   const openAddStop = () => setIsAddStopOpen(true);
   const closeAddStop = () => setIsAddStopOpen(false);
 
-  const handleAddStopToItinerary = (
-    place: AddedPlaceDraft,
-    priority: PriorityLevel
-  ) => {
+  const handleAddStopToItinerary = (place: AddedPlaceDraft, priority: PriorityLevel) => {
     setIsAddStopOpen(false);
 
     const placeWithPriority: AddedPlaceDraft = {
@@ -351,8 +396,9 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setTourStopIndex(0);
     setSelectedStop(null);
     setLastFeedbackMessage(
-      '"' + place.name + '" foi incluído e o restante do dia foi reorganizado.'
+      '"' + place.name + '" foi incluído e o restante do dia foi reorganizado.',
     );
+    void refreshLiveWeather(config);
   };
 
   const resolveKeepAndAdjust = () => {
@@ -371,9 +417,7 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(
-      'Mantivemos "' +
-        conflict.place.name +
-        '" e reorganizamos primeiro as paradas flexíveis.'
+      'Mantivemos "' + conflict.place.name + '" e reorganizamos primeiro as paradas flexíveis.',
     );
   };
 
@@ -403,11 +447,11 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     setSelectedStop(null);
     setConflict(null);
     setLastFeedbackMessage(
-      'Orçamento atualizado para R$' +
+      "Orçamento atualizado para R$" +
         conflict.newTotal +
         ' e "' +
         conflict.place.name +
-        '" foi mantido.'
+        '" foi mantido.',
     );
   };
 
@@ -434,49 +478,41 @@ export function TripProvider({ children }: { children: React.ReactNode }) {
     switch (intentId) {
       case "eat":
         setLastFeedbackMessage(
-          "Simulamos uma opção gastronômica próxima sem alterar suas prioridades."
+          "Simulamos uma opção gastronômica próxima sem alterar suas prioridades.",
         );
         break;
       case "rest":
-        setLastFeedbackMessage(
-          "Incluímos uma pausa curta sem comprometer o horário final."
-        );
+        setLastFeedbackMessage("Incluímos uma pausa curta sem comprometer o horário final.");
         break;
       case "free":
         setStops((prev) =>
           prev.map((stop, index) =>
-            index === tourStopIndex &&
-            stop.cost > 0 &&
-            stop.priority !== "required"
+            index === tourStopIndex && stop.cost > 0 && stop.priority !== "required"
               ? {
                   ...stop,
                   name: stop.name + " — alternativa gratuita",
                   cost: 0,
                   costType: "free",
                 }
-              : stop
-          )
+              : stop,
+          ),
         );
         setLastFeedbackMessage(
-          "A próxima parada flexível foi trocada por uma alternativa gratuita."
+          "A próxima parada flexível foi trocada por uma alternativa gratuita.",
         );
         break;
       case "save":
-        setLastFeedbackMessage(
-          "Priorizamos opções de menor custo nas próximas paradas flexíveis."
-        );
+        setLastFeedbackMessage("Priorizamos opções de menor custo nas próximas paradas flexíveis.");
         break;
       case "indoor":
-        setLastFeedbackMessage(
-          "Simulamos opções cobertas para as próximas paradas."
-        );
+        setLastFeedbackMessage("Simulamos opções cobertas para as próximas paradas.");
         break;
       case "add":
         setIsAddStopOpen(true);
         break;
       case "change":
         setLastFeedbackMessage(
-          "O foco das próximas paradas foi ajustado sem remover suas prioridades."
+          "O foco das próximas paradas foi ajustado sem remover suas prioridades.",
         );
         break;
       default:

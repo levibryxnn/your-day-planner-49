@@ -1,12 +1,11 @@
-export type ConfidenceLevel =
-  | "confirmed"
-  | "estimated"
-  | "stale"
-  | "unknown"
-  | "unavailable";
+export type ConfidenceLevel = "confirmed" | "estimated" | "stale" | "unknown" | "unavailable";
 
 export type ProviderName =
   | "mock"
+  | "open_meteo"
+  | "nominatim"
+  | "photon"
+  | "osrm"
   | "google_places"
   | "google_routes"
   | "google_weather"
@@ -55,9 +54,7 @@ export interface RotaPlace {
   businessStatus: DataField<
     "operational" | "temporarily_closed" | "permanently_closed" | "unknown"
   >;
-  openingStatus: DataField<
-    "open" | "closed" | "unknown"
-  >;
+  openingStatus: DataField<"open" | "closed" | "unknown">;
   rating?: DataField<number>;
   ratingCount?: DataField<number>;
   priceLevel?: DataField<number>;

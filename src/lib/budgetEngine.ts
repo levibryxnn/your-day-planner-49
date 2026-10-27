@@ -5,10 +5,7 @@ export function calculateStopsTotal(stops: TripStop[]) {
 }
 
 export function calculateExpensesTotal(expenses: TripExpense[]) {
-  return expenses.reduce(
-    (total, expense) => total + Math.max(0, expense.estimatedCost || 0),
-    0
-  );
+  return expenses.reduce((total, expense) => total + Math.max(0, expense.estimatedCost || 0), 0);
 }
 
 export function calculateTotalPlanned(stops: TripStop[], expenses: TripExpense[]) {
@@ -18,7 +15,7 @@ export function calculateTotalPlanned(stops: TripStop[], expenses: TripExpense[]
 export function calculateRemainingBudget(
   budget: number,
   stops: TripStop[],
-  expenses: TripExpense[]
+  expenses: TripExpense[],
 ) {
   return budget - calculateTotalPlanned(stops, expenses);
 }

@@ -161,42 +161,39 @@ export function TourModeView() {
               </div>
             </div>
 
-            {currentStop.weatherRisk &&
-              currentStop.weatherRisk !== "none" && (
-                <div
-                  className={
-                    currentStop.weatherRisk === "conflict"
-                      ? "rounded-2xl border border-sky-200 bg-sky-50 p-3.5"
-                      : "rounded-2xl border border-amber-200 bg-amber-50 p-3.5"
-                  }
-                >
-                  <div className="flex items-start gap-2.5">
-                    {currentStop.weatherRisk === "conflict" ? (
-                      <CloudRain className="mt-0.5 h-4 w-4 flex-shrink-0 text-sky-800" />
-                    ) : (
-                      <Umbrella className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-800" />
-                    )}
-                    <div className="flex-1">
-                      <span className="block text-xs font-bold text-stone-900">
-                        Atenção ao clima
-                      </span>
-                      <p className="mt-0.5 text-xs leading-relaxed text-stone-600">
-                        {currentStop.weatherNote}
-                      </p>
-                    </div>
-                  </div>
-
-                  {currentStop.weatherRisk === "conflict" && (
-                    <button
-                      type="button"
-                      onClick={optimizeForWeather}
-                      className="mt-3 w-full rounded-xl bg-sky-900 px-3 py-2.5 text-xs font-bold text-white transition-all hover:bg-sky-800"
-                    >
-                      Ajustar restante do dia
-                    </button>
+            {currentStop.weatherRisk && currentStop.weatherRisk !== "none" && (
+              <div
+                className={
+                  currentStop.weatherRisk === "conflict"
+                    ? "rounded-2xl border border-sky-200 bg-sky-50 p-3.5"
+                    : "rounded-2xl border border-amber-200 bg-amber-50 p-3.5"
+                }
+              >
+                <div className="flex items-start gap-2.5">
+                  {currentStop.weatherRisk === "conflict" ? (
+                    <CloudRain className="mt-0.5 h-4 w-4 flex-shrink-0 text-sky-800" />
+                  ) : (
+                    <Umbrella className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-800" />
                   )}
+                  <div className="flex-1">
+                    <span className="block text-xs font-bold text-stone-900">Atenção ao clima</span>
+                    <p className="mt-0.5 text-xs leading-relaxed text-stone-600">
+                      {currentStop.weatherNote}
+                    </p>
+                  </div>
                 </div>
-              )}
+
+                {currentStop.weatherRisk === "conflict" && (
+                  <button
+                    type="button"
+                    onClick={optimizeForWeather}
+                    className="mt-3 w-full rounded-xl bg-sky-900 px-3 py-2.5 text-xs font-bold text-white transition-all hover:bg-sky-800"
+                  >
+                    Ajustar restante do dia
+                  </button>
+                )}
+              </div>
+            )}
 
             {isNavigating ? (
               <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">

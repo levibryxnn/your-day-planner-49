@@ -1,9 +1,4 @@
-import {
-  ProviderErrorCode,
-  ProviderFailure,
-  ProviderName,
-  ProviderResult,
-} from "./domain";
+import { ProviderErrorCode, ProviderFailure, ProviderName, ProviderResult } from "./domain";
 
 interface SafeProviderCallOptions<T> {
   provider: ProviderName;
@@ -29,19 +24,14 @@ function mapErrorCode(error: unknown): ProviderErrorCode {
   return "unknown";
 }
 
-function createFailure(
-  provider: ProviderName,
-  error: unknown,
-): ProviderFailure {
+function createFailure(provider: ProviderName, error: unknown): ProviderFailure {
   const code = mapErrorCode(error);
 
   return {
     provider,
     code,
     message:
-      error instanceof Error
-        ? error.message
-        : "O provedor externo não respondeu como esperado.",
+      error instanceof Error ? error.message : "O provedor externo não respondeu como esperado.",
     retryable: [
       "timeout",
       "quota_exceeded",
@@ -63,10 +53,7 @@ export async function safeProviderCall<T>({
 
   try {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error("Provider timeout")),
-        timeoutMs,
-      );
+      timer = setTimeout(() => reject(new Error("Provider timeout")), timeoutMs);
     });
 
     const data = await Promise.race([operation(), timeoutPromise]);

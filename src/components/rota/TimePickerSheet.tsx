@@ -16,13 +16,7 @@ const TIME_OPTIONS = Array.from({ length: 36 }, (_, index) => {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 });
 
-export function TimePickerSheet({
-  isOpen,
-  title,
-  value,
-  onChange,
-  onClose,
-}: TimePickerSheetProps) {
+export function TimePickerSheet({ isOpen, title, value, onChange, onClose }: TimePickerSheetProps) {
   if (!isOpen) return null;
 
   return (

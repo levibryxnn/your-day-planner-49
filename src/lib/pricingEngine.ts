@@ -1,4 +1,4 @@
-import { PlacePricing, UserTripConfig } from "./types";
+import { CostType, PlacePricing, UserTripConfig } from "./types";
 
 interface PricingResult {
   total: number;
@@ -17,17 +17,24 @@ function childWeight(age: number) {
 }
 
 function findChildPrice(age: number, pricing: PlacePricing) {
-  const band = pricing.childBands?.find(
-    (item) => age >= item.minAge && age <= item.maxAge
-  );
+  const band = pricing.childBands?.find((item) => age >= item.minAge && age <= item.maxAge);
   return band?.price ?? pricing.adultPrice ?? 0;
 }
 
 export function calculatePlacePrice(
   fallbackCost: number,
   pricing: PlacePricing | undefined,
-  config: UserTripConfig
+  config: UserTripConfig,
+  costType?: CostType,
 ): PricingResult {
+  if (costType === "unavailable") {
+    return {
+      total: 0,
+      breakdown: ["Preço não confirmado pela fonte atual"],
+      summary: "Preço não confirmado",
+    };
+  }
+
   if (fallbackCost <= 0 || pricing?.mode === "free") {
     return {
       total: 0,
@@ -57,7 +64,7 @@ export function calculatePlacePrice(
           " (" +
           age +
           (age === 1 ? " ano): " : " anos): ") +
-          (price === 0 ? "grátis" : formatCurrency(price))
+          (price === 0 ? "grátis" : formatCurrency(price)),
       );
     });
 
@@ -71,8 +78,7 @@ export function calculatePlacePrice(
 
   const baselineWeight = 2.5;
   const groupWeight =
-    config.adults +
-    config.childAges.reduce((total, age) => total + childWeight(age), 0);
+    config.adults + config.childAges.reduce((total, age) => total + childWeight(age), 0);
   const total = Math.round((fallbackCost * groupWeight) / baselineWeight);
 
   return {
@@ -94,8 +100,10 @@ export function calculatePlacePrice(
 export function getUnitPriceLabel(
   fallbackCost: number,
   pricing: PlacePricing | undefined,
-  costType: string
+  costType: string,
 ) {
+  if (costType === "unavailable") return "Preço indisponível";
+
   if (costType === "free" || pricing?.mode === "free" || fallbackCost <= 0) {
     return "Grátis";
   }

@@ -1,24 +1,12 @@
 import React from "react";
-import {
-  CloudRain,
-  CloudSun,
-  RefreshCw,
-  ShieldCheck,
-  Umbrella,
-} from "lucide-react";
+import { CloudRain, CloudSun, RefreshCw, ShieldCheck, Umbrella } from "lucide-react";
 import { useTripStore } from "../../lib/tripStore";
 
 export function WeatherRiskBanner() {
-  const {
-    weatherForecast,
-    weatherSummary,
-    optimizeForWeather,
-  } = useTripStore();
+  const { weatherForecast, weatherSummary, optimizeForWeather } = useTripStore();
 
   const peakIndex = weatherSummary.peakTime
-    ? weatherForecast.findIndex(
-        (slot) => slot.time === weatherSummary.peakTime,
-      )
+    ? weatherForecast.findIndex((slot) => slot.time === weatherSummary.peakTime)
     : -1;
 
   const previewSlots =
@@ -75,9 +63,7 @@ export function WeatherRiskBanner() {
           <h3 className="mt-1 text-sm font-bold leading-snug text-stone-900">
             {weatherSummary.headline}
           </h3>
-          <p className="mt-1 text-xs leading-relaxed text-stone-600">
-            {weatherSummary.detail}
-          </p>
+          <p className="mt-1 text-xs leading-relaxed text-stone-600">{weatherSummary.detail}</p>
         </div>
       </div>
 
@@ -90,9 +76,7 @@ export function WeatherRiskBanner() {
             <span className="block font-mono text-[11px] font-bold text-stone-800">
               {slot.time}
             </span>
-            <span className="mt-0.5 block text-[10px] text-stone-500">
-              {slot.temperatureC}°C
-            </span>
+            <span className="mt-0.5 block text-[10px] text-stone-500">{slot.temperatureC}°C</span>
             <span
               className={
                 slot.precipitationProbability >= 60
@@ -118,15 +102,13 @@ export function WeatherRiskBanner() {
       ) : (
         <div className="mt-3 flex items-center gap-2 rounded-2xl border border-white/70 bg-white/60 px-3 py-2 text-[11px] font-medium text-stone-600">
           <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0 text-emerald-800" />
-          <span>
-            Nesta simulação, as atividades sensíveis já evitam o pior horário.
-          </span>
+          <span>Nesta simulação, as atividades sensíveis já evitam o pior horário.</span>
         </div>
       )}
 
       <p className="mt-2 text-center text-[9.5px] leading-relaxed text-stone-400">
-        Nesta versão os dados climáticos são simulados. A integração real usará
-        previsão horária por localização.
+        Nesta versão os dados climáticos são simulados. A integração real usará previsão horária por
+        localização.
       </p>
     </section>
   );
