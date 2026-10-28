@@ -85,6 +85,10 @@ O workflow `Deploy Rota preview` publica automaticamente uma versão navegável 
 
 <https://levibryxnn.github.io/your-day-planner-49/>
 
+Enquanto o Pages não estiver ativo, o mesmo artefato pode ser aberto pelo CDN do GitHub:
+
+<https://cdn.jsdelivr.net/gh/levibryxnn/your-day-planner-49@main/preview-build/index.html>
+
 Esse preview usa o modo de demonstração do GitHub Pages: geração do roteiro, orçamento,
 prioridades, clima simulado e modo passeio continuam testáveis sem servidor. As rotas reais de
 destinos, lugares, clima e matriz OSRM exigem o build server-side do TanStack Start em um host com

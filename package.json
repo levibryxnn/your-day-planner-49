@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:cdn": "VITE_GITHUB_PAGES_DEMO=true GITHUB_CDN_PREVIEW=true vite build --config vite.github-pages.config.ts && sed -i 's#../assets/#./assets/#g' dist-pages/preview/index.html && cp dist-pages/preview/index.html dist-pages/index.html",
     "build:pages": "VITE_GITHUB_PAGES_DEMO=true GITHUB_PAGES=true vite build --config vite.github-pages.config.ts && cp dist-pages/preview/index.html dist-pages/index.html",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
